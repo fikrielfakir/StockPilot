@@ -101,6 +101,8 @@ export const insertArticleSchema = createInsertSchema(articles).omit({
   id: true,
   createdAt: true,
   stockActuel: true,
+}).extend({
+  prixUnitaire: z.coerce.number().nullable().optional(),
 });
 
 export const insertSupplierSchema = createInsertSchema(suppliers).omit({
@@ -122,6 +124,8 @@ export const insertPurchaseRequestSchema = createInsertSchema(purchaseRequests).
 export const insertReceptionSchema = createInsertSchema(receptions).omit({
   id: true,
   createdAt: true,
+}).extend({
+  prixUnitaire: z.coerce.number().nullable().optional(),
 });
 
 export const insertOutboundSchema = createInsertSchema(outbounds).omit({

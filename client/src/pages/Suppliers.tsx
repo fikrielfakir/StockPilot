@@ -4,15 +4,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import SupplierForm from "@/components/SupplierForm";
+import BulkImportExport from "@/components/BulkImportExport";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Upload, Download, Plus, Edit, Trash2 } from "lucide-react";
 import type { Supplier } from "@shared/schema";
 
 export default function Suppliers() {
   const [showForm, setShowForm] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [search, setSearch] = useState("");
+  const [showImportExport, setShowImportExport] = useState(false);
   const { toast } = useToast();
 
   const { data: suppliers = [], isLoading } = useQuery<Supplier[]>({

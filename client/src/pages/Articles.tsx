@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ArticleForm from "@/components/ArticleForm";
 import BarcodeGenerator from "@/components/BarcodeGenerator";
+import BulkImportExport from "@/components/BulkImportExport";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { generateStockReportPDF } from "@/lib/pdfUtils";
 import type { Article } from "@shared/schema";
+import { Upload, Download, Plus } from "lucide-react";
 
 export default function Articles() {
   const [showForm, setShowForm] = useState(false);
@@ -19,6 +21,7 @@ export default function Articles() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
   const [selectedArticleForQR, setSelectedArticleForQR] = useState<Article | null>(null);
+  const [showImportExport, setShowImportExport] = useState(false);
   const { toast } = useToast();
 
   const { data: articles = [], isLoading } = useQuery<Article[]>({
@@ -107,6 +110,10 @@ export default function Articles() {
     );
   }
 
+  if (showImportExport) {
+    return <BulkImportExport entityType="articles" onClose={() => setShowImportExport(false)} />;
+  }
+
   return (
     <div className="space-y-6" data-testid="articles-page">
       <Card>
@@ -115,12 +122,21 @@ export default function Articles() {
             <h3 className="text-xl font-semibold text-ms-gray-dark">Gestion des Articles</h3>
             <div className="flex space-x-3">
               <Button 
+                onClick={() => setShowImportExport(true)}
+                variant="outline"
+                className="flex items-center space-x-2"
+                data-testid="button-import-export"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Import/Export</span>
+              </Button>
+              <Button 
                 onClick={() => generateStockReportPDF(filteredArticles, 'Rapport Articles')}
                 variant="outline"
                 className="flex items-center space-x-2"
                 data-testid="button-export-pdf"
               >
-                <i className="fas fa-file-pdf text-red-600"></i>
+                <Download className="w-4 h-4" />
                 <span>Export PDF</span>
               </Button>
               <Button 
@@ -128,7 +144,7 @@ export default function Articles() {
                 className="btn-ms-blue flex items-center space-x-2"
                 data-testid="button-add-article"
               >
-                <i className="fas fa-plus"></i>
+                <Plus className="w-4 h-4" />
                 <span>Nouvel Article</span>
               </Button>
             </div>

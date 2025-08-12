@@ -63,6 +63,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk import articles
+  app.post("/api/articles/bulk-import", async (req, res) => {
+    try {
+      const { data } = req.body;
+      const results = {
+        success: 0,
+        errors: [] as Array<{ row: number; error: string; data: any }>,
+        total: data.length
+      };
+
+      for (let index = 0; index < data.length; index++) {
+        try {
+          const item = data[index];
+          const validated = insertArticleSchema.parse({
+            ...item,
+            stockActuel: item.stockInitial || 0,
+          });
+          await storage.createArticle(validated);
+          results.success++;
+        } catch (error) {
+          results.errors.push({
+            row: index + 1,
+            error: error instanceof Error ? error.message : 'Erreur de validation',
+            data: data[index]
+          });
+        }
+      }
+
+      res.json(results);
+    } catch (error) {
+      console.error("Error bulk importing articles:", error);
+      res.status(500).json({ message: "Erreur lors de l'import en masse" });
+    }
+  });
+
+  // Export articles
+  app.get("/api/articles/export", async (req, res) => {
+    try {
+      const format = req.query.format as string;
+      const articles = await storage.getArticles();
+      
+      if (format === 'csv') {
+        const csvData = articles.map(article => ({
+          codeArticle: article.codeArticle,
+          designation: article.designation,
+          categorie: article.categorie,
+          marque: article.marque || '',
+          reference: article.reference || '',
+          stockActuel: article.stockActuel,
+          unite: article.unite,
+          prixUnitaire: article.prixUnitaire || 0,
+          seuilMinimum: article.seuilMinimum,
+          fournisseurId: article.fournisseurId || ''
+        }));
+        
+        // Simple CSV generation
+        const headers = Object.keys(csvData[0] || {});
+        const csvContent = [
+          headers.join(','),
+          ...csvData.map(row => headers.map(header => 
+            typeof row[header as keyof typeof row] === 'string' 
+              ? `"${row[header as keyof typeof row]}"`
+              : row[header as keyof typeof row]
+          ).join(','))
+        ].join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=articles.csv');
+        res.send(csvContent);
+      } else if (format === 'pdf') {
+        // Simple PDF response - in real app you'd use jsPDF or similar
+        const pdfContent = `Articles Export\n\nTotal: ${articles.length} articles\n\n${
+          articles.map(a => `${a.codeArticle}: ${a.designation} (Stock: ${a.stockActuel})`).join('\n')
+        }`;
+        
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', 'attachment; filename=articles.txt');
+        res.send(pdfContent);
+      } else {
+        res.status(400).json({ message: "Format non supporté" });
+      }
+    } catch (error) {
+      console.error("Error exporting articles:", error);
+      res.status(500).json({ message: "Erreur lors de l'export" });
+    }
+  });
+
   // Suppliers routes
   app.get("/api/suppliers", async (req, res) => {
     try {
@@ -98,6 +185,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Erreur lors de la suppression" });
+    }
+  });
+
+  // Bulk import suppliers
+  app.post("/api/suppliers/bulk-import", async (req, res) => {
+    try {
+      const { data } = req.body;
+      const results = {
+        success: 0,
+        errors: [] as Array<{ row: number; error: string; data: any }>,
+        total: data.length
+      };
+
+      for (let index = 0; index < data.length; index++) {
+        try {
+          const item = data[index];
+          const validated = insertSupplierSchema.parse(item);
+          await storage.createSupplier(validated);
+          results.success++;
+        } catch (error) {
+          results.errors.push({
+            row: index + 1,
+            error: error instanceof Error ? error.message : 'Erreur de validation',
+            data: data[index]
+          });
+        }
+      }
+
+      res.json(results);
+    } catch (error) {
+      console.error("Error bulk importing suppliers:", error);
+      res.status(500).json({ message: "Erreur lors de l'import en masse" });
+    }
+  });
+
+  // Export suppliers
+  app.get("/api/suppliers/export", async (req, res) => {
+    try {
+      const format = req.query.format as string;
+      const suppliers = await storage.getSuppliers();
+      
+      if (format === 'csv') {
+        const csvData = suppliers.map(supplier => ({
+          nom: supplier.nom,
+          contact: supplier.contact || '',
+          telephone: supplier.telephone || '',
+          email: supplier.email || '',
+          adresse: supplier.adresse || '',
+          conditionsPaiement: supplier.conditionsPaiement || '',
+          delaiLivraison: supplier.delaiLivraison || 0
+        }));
+        
+        const headers = Object.keys(csvData[0] || {});
+        const csvContent = [
+          headers.join(','),
+          ...csvData.map(row => headers.map(header => 
+            typeof row[header as keyof typeof row] === 'string' 
+              ? `"${row[header as keyof typeof row]}"`
+              : row[header as keyof typeof row]
+          ).join(','))
+        ].join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=suppliers.csv');
+        res.send(csvContent);
+      } else if (format === 'pdf') {
+        const pdfContent = `Suppliers Export\n\nTotal: ${suppliers.length} suppliers\n\n${
+          suppliers.map(s => `${s.nom}: ${s.contact} (${s.telephone})`).join('\n')
+        }`;
+        
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', 'attachment; filename=suppliers.txt');
+        res.send(pdfContent);
+      } else {
+        res.status(400).json({ message: "Format non supporté" });
+      }
+    } catch (error) {
+      console.error("Error exporting suppliers:", error);
+      res.status(500).json({ message: "Erreur lors de l'export" });
     }
   });
 
