@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { insertPurchaseRequestSchema, type PurchaseRequest, type InsertPurchaseRequest } from "@shared/schema";
+import { insertPurchaseRequestSchema, type PurchaseRequest, type InsertPurchaseRequest, type Article, type Requestor, type Supplier } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -21,15 +21,15 @@ export default function PurchaseRequestForm({ request, onClose }: PurchaseReques
   const { toast } = useToast();
   const isEditing = !!request;
 
-  const { data: articles = [] } = useQuery({
+  const { data: articles = [] } = useQuery<Article[]>({
     queryKey: ["/api/articles"],
   });
 
-  const { data: requestors = [] } = useQuery({
+  const { data: requestors = [] } = useQuery<Requestor[]>({
     queryKey: ["/api/requestors"],
   });
 
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [] } = useQuery<Supplier[]>({
     queryKey: ["/api/suppliers"],
   });
 
