@@ -1,5 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
+import SettingsModal from "@/components/Settings";
+import UserPreferences from "@/components/UserPreferences";
 import { 
   Home, 
   Package, 
@@ -44,6 +46,8 @@ const navigationItems = [
 export default function TopNavigation() {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
+  const [showUserPreferences, setShowUserPreferences] = useState(false);
 
   const isActive = (path: string) => {
     if (path === "/" && (location === "/" || location === "/dashboard")) return true;
@@ -134,7 +138,11 @@ export default function TopNavigation() {
           </Button>
 
           {/* Settings */}
-          <Button variant="ghost" size="sm">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => setShowSettings(true)}
+          >
             <Settings className="w-4 h-4" />
           </Button>
 
@@ -151,11 +159,11 @@ export default function TopNavigation() {
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Mon Compte</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowUserPreferences(true)}>
                 <User className="w-4 h-4 mr-2" />
                 Profil
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowSettings(true)}>
                 <Settings className="w-4 h-4 mr-2" />
                 Paramètres
               </DropdownMenuItem>
@@ -191,6 +199,20 @@ export default function TopNavigation() {
           })}
         </div>
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <SettingsModal onClose={() => setShowSettings(false)} />
+      )}
+
+      {/* User Preferences Modal */}
+      {showUserPreferences && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <UserPreferences onClose={() => setShowUserPreferences(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
