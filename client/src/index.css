@@ -245,4 +245,110 @@
   .card-hover:hover {
     @apply shadow-lg transform -translate-y-0.5;
   }
+
+  /* Responsive Design Utilities */
+  .responsive-grid-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6;
+  }
+
+  .responsive-grid-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6;
+  }
+
+  .responsive-grid-4 {
+    @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4;
+  }
+
+  .responsive-padding {
+    @apply p-4 sm:p-6;
+  }
+
+  .responsive-margin {
+    @apply m-4 sm:m-6;
+  }
+
+  .responsive-text {
+    @apply text-sm sm:text-base;
+  }
+
+  .responsive-text-small {
+    @apply text-xs sm:text-sm;
+  }
+
+  .responsive-icon {
+    @apply w-4 h-4 sm:w-5 sm:h-5;
+  }
+
+  .responsive-icon-small {
+    @apply w-3 h-3 sm:w-4 sm:h-4;
+  }
+
+  /* Mobile-first containers */
+  .mobile-container {
+    @apply w-full max-w-[95vw] sm:max-w-4xl;
+  }
+
+  .mobile-modal {
+    @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4;
+  }
+
+  .mobile-card {
+    @apply w-full max-w-[calc(100vw-1rem)] sm:max-w-md lg:max-w-lg;
+  }
+
+  /* Responsive buttons */
+  .btn-responsive {
+    @apply px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base;
+  }
+
+  .btn-responsive-small {
+    @apply px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm;
+  }
+
+  /* Hide/show utilities for responsive design */
+  .mobile-only {
+    @apply block sm:hidden;
+  }
+
+  .desktop-only {
+    @apply hidden sm:block;
+  }
+
+  .tablet-up {
+    @apply hidden md:block;
+  }
+
+  /* Responsive navigation */
+  .nav-responsive {
+    @apply flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4;
+  }
+
+  /* Responsive alerts and notifications */
+  .alert-responsive {
+    @apply fixed top-4 right-4 z-50 w-80 sm:w-72 md:w-80 max-w-[calc(100vw-2rem)];
+  }
+
+  /* Auto-hide animations */
+  .auto-hide-3s {
+    animation: slideInFadeOut 3s ease-in-out forwards;
+  }
+
+  @keyframes slideInFadeOut {
+    0% {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    10% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    90% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+  }
 }

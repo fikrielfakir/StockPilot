@@ -255,10 +255,10 @@ export default function Settings({ onClose }: SettingsProps) {
   ];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-[95vw] sm:max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-blue-50 rounded-sm flex items-center justify-center">
@@ -283,32 +283,38 @@ export default function Settings({ onClose }: SettingsProps) {
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-200px)] sm:max-h-[calc(90vh-200px)]">
           <Tabs defaultValue="appearance" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="appearance">
-                <Palette className="w-4 h-4 mr-2" />
-                Apparence
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1">
+              <TabsTrigger value="appearance" className="text-xs sm:text-sm">
+                <Palette className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Apparence</span>
+                <span className="sm:hidden">App</span>
               </TabsTrigger>
-              <TabsTrigger value="functionality">
-                <Zap className="w-4 h-4 mr-2" />
-                Fonctions
+              <TabsTrigger value="functionality" className="text-xs sm:text-sm">
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Fonctions</span>
+                <span className="sm:hidden">Fn</span>
               </TabsTrigger>
-              <TabsTrigger value="data">
-                <Database className="w-4 h-4 mr-2" />
-                Données
+              <TabsTrigger value="data" className="text-xs sm:text-sm">
+                <Database className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Données</span>
+                <span className="sm:hidden">Data</span>
               </TabsTrigger>
-              <TabsTrigger value="security">
-                <Shield className="w-4 h-4 mr-2" />
-                Sécurité
+              <TabsTrigger value="security" className="text-xs sm:text-sm">
+                <Shield className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sécurité</span>
+                <span className="sm:hidden">Sec</span>
               </TabsTrigger>
-              <TabsTrigger value="notifications">
-                <Bell className="w-4 h-4 mr-2" />
-                Alertes
+              <TabsTrigger value="notifications" className="text-xs sm:text-sm">
+                <Bell className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Alertes</span>
+                <span className="sm:hidden">Alert</span>
               </TabsTrigger>
-              <TabsTrigger value="advanced">
-                <SettingsIcon className="w-4 h-4 mr-2" />
-                Avancé
+              <TabsTrigger value="advanced" className="text-xs sm:text-sm">
+                <SettingsIcon className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Avancé</span>
+                <span className="sm:hidden">Adv</span>
               </TabsTrigger>
             </TabsList>
 
@@ -319,7 +325,7 @@ export default function Settings({ onClose }: SettingsProps) {
                 </div>
                 <WindowsCardContent className="p-6 space-y-6">
                   {/* Theme */}
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <Label className="text-sm font-medium">Thème</Label>
                       <Select value={settings.theme} onValueChange={(value: any) => updateSetting('theme', value)}>
@@ -368,22 +374,22 @@ export default function Settings({ onClose }: SettingsProps) {
                   {/* Accent Colors */}
                   <div>
                     <Label className="text-sm font-medium mb-3 block">Couleur d'accent</Label>
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                       {accentColors.map((color) => (
                         <button
                           key={color.value}
                           onClick={() => updateSetting('accentColor', color.value)}
-                          className={`p-3 rounded-lg border-2 flex items-center space-x-2 transition-all ${
+                          className={`p-2 sm:p-3 rounded-lg border-2 flex items-center justify-center sm:justify-start space-x-1 sm:space-x-2 transition-all ${
                             settings.accentColor === color.value 
                               ? 'border-blue-500 bg-blue-50' 
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
                           <div 
-                            className="w-4 h-4 rounded-full" 
+                            className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0" 
                             style={{ backgroundColor: color.value }}
                           />
-                          <span className="text-sm">{color.name}</span>
+                          <span className="text-xs sm:text-sm truncate">{color.name}</span>
                         </button>
                       ))}
                     </div>
@@ -736,9 +742,9 @@ export default function Settings({ onClose }: SettingsProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-3">
+        <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
+            <div className="flex space-x-3 order-2 sm:order-1">
               <Button
                 onClick={resetSettings}
                 variant="outline"
@@ -747,7 +753,7 @@ export default function Settings({ onClose }: SettingsProps) {
                 Réinitialiser
               </Button>
             </div>
-            <div className="flex space-x-3">
+            <div className="flex space-x-3 order-1 sm:order-2">
               <Button variant="outline" onClick={onClose}>
                 Annuler
               </Button>

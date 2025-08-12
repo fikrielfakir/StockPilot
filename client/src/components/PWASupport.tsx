@@ -26,6 +26,7 @@ export default function PWASupport() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showOfflineAlert, setShowOfflineAlert] = useState(false);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [showPWACard, setShowPWACard] = useState(true);
 
   useEffect(() => {
     // Check if app is already installed
@@ -82,10 +83,16 @@ export default function PWASupport() {
         });
     }
 
+    // Auto-hide PWA card after 3 seconds
+    const timer = setTimeout(() => {
+      setShowPWACard(false);
+    }, 3000);
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearTimeout(timer);
     };
   }, []);
 
@@ -142,7 +149,7 @@ export default function PWASupport() {
     <>
       {/* Offline Alert */}
       {showOfflineAlert && (
-        <Alert className="fixed top-4 right-4 z-50 w-80 border-orange-200 bg-orange-50">
+        <Alert className="fixed top-4 right-4 z-50 w-80 sm:w-72 md:w-80 max-w-[calc(100vw-2rem)] border-orange-200 bg-orange-50">
           <WifiOff className="h-4 w-4 text-orange-600" />
           <AlertDescription className="text-orange-800">
             <strong>Mode hors ligne</strong><br />
@@ -153,7 +160,7 @@ export default function PWASupport() {
 
       {/* Update Available Alert */}
       {updateAvailable && (
-        <Alert className="fixed top-4 right-4 z-50 w-80 border-blue-200 bg-blue-50">
+        <Alert className="fixed top-4 right-4 z-50 w-80 sm:w-72 md:w-80 max-w-[calc(100vw-2rem)] border-blue-200 bg-blue-50">
           <RefreshCw className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
             <div className="flex items-center justify-between">
@@ -170,9 +177,10 @@ export default function PWASupport() {
       )}
 
       {/* PWA Status Card */}
-      <WindowsCard className="fixed bottom-4 right-4 z-40 w-80">
-        <WindowsCardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
+      {showPWACard && (
+        <WindowsCard className="fixed bottom-4 right-4 z-40 w-80 sm:w-72 md:w-80 lg:w-80 xl:w-80 max-w-[calc(100vw-2rem)] transition-all duration-300 animate-in slide-in-from-bottom-2 fade-in">
+          <WindowsCardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-semibold text-gray-900 flex items-center">
               <Smartphone className="w-4 h-4 mr-2" />
               Application Mobile
@@ -214,9 +222,10 @@ export default function PWASupport() {
                 ✓ Application installée et prête à l'utilisation hors ligne
               </div>
             )}
-          </div>
-        </WindowsCardContent>
-      </WindowsCard>
+            </div>
+          </WindowsCardContent>
+        </WindowsCard>
+      )}
     </>
   );
 }
