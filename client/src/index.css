@@ -1,0 +1,124 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 20%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 20%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 20%);
+  --primary: hsl(207 100% 42%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(217 5% 95%);
+  --secondary-foreground: hsl(0 0% 20%);
+  --muted: hsl(217 5% 95%);
+  --muted-foreground: hsl(215 7% 36%);
+  --accent: hsl(217 5% 95%);
+  --accent-foreground: hsl(207 100% 42%);
+  --destructive: hsl(0 73% 41%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(217 10% 90%);
+  --input: hsl(217 10% 97%);
+  --ring: hsl(207 100% 42%);
+  --radius: 0.5rem;
+  
+  /* Microsoft-style colors */
+  --ms-blue: hsl(207 100% 42%);
+  --ms-blue-dark: hsl(212 79% 39%);
+  --ms-light-blue: hsl(192 100% 47%);
+  --ms-green: hsl(109 58% 40%);
+  --ms-amber: hsl(45 100% 49%);
+  --ms-red: hsl(354 70% 54%);
+  --ms-gray-light: hsl(40 6% 95%);
+  --ms-gray: hsl(40 4% 38%);
+  --ms-gray-dark: hsl(40 4% 20%);
+  
+  --font-system: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.dark {
+  --background: hsl(0 0% 4%);
+  --foreground: hsl(0 0% 95%);
+  --card: hsl(0 0% 8%);
+  --card-foreground: hsl(0 0% 95%);
+  --popover: hsl(0 0% 4%);
+  --popover-foreground: hsl(0 0% 95%);
+  --primary: hsl(207 100% 50%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(217 5% 14%);
+  --secondary-foreground: hsl(0 0% 95%);
+  --muted: hsl(217 5% 14%);
+  --muted-foreground: hsl(215 7% 64%);
+  --accent: hsl(217 5% 14%);
+  --accent-foreground: hsl(207 100% 50%);
+  --destructive: hsl(0 73% 41%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(217 10% 18%);
+  --input: hsl(217 10% 14%);
+  --ring: hsl(207 100% 50%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: var(--font-system);
+  }
+}
+
+@layer components {
+  .sidebar-item {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .sidebar-item:hover {
+    @apply bg-muted;
+  }
+  
+  .sidebar-item.active {
+    @apply bg-primary text-primary-foreground;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .card-hover:hover {
+    @apply shadow-lg transform -translate-y-0.5;
+  }
+  
+  .btn-ms-blue {
+    @apply bg-[var(--ms-blue)] hover:bg-[var(--ms-blue-dark)] text-white;
+  }
+  
+  .btn-ms-green {
+    @apply bg-[var(--ms-green)] hover:bg-green-700 text-white;
+  }
+  
+  .btn-ms-amber {
+    @apply bg-[var(--ms-amber)] hover:bg-yellow-600 text-white;
+  }
+  
+  .btn-ms-red {
+    @apply bg-[var(--ms-red)] hover:bg-red-700 text-white;
+  }
+  
+  .text-ms-gray {
+    color: var(--ms-gray);
+  }
+  
+  .text-ms-gray-dark {
+    color: var(--ms-gray-dark);
+  }
+  
+  .bg-ms-gray-light {
+    background-color: var(--ms-gray-light);
+  }
+}
