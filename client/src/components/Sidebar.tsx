@@ -18,6 +18,7 @@ const menuItems = [
 ];
 
 const secondaryItems = [
+  { id: "analytics", path: "/analytics", icon: "fas fa-brain", label: "Analytics IA" },
   { id: "reports", path: "/reports", icon: "fas fa-chart-line", label: "Rapports" },
 ];
 

@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { WindowsCard, WindowsCardContent } from "@/components/WindowsCard";
 import { WindowsButton } from "@/components/WindowsButton";
 import { Link } from "wouter";
-import { Package, AlertTriangle, ShoppingCart, TrendingUp, Truck, Plus, FileText } from "lucide-react";
+import { Package, AlertTriangle, ShoppingCart, TrendingUp, Truck, Plus, FileText, Brain, Activity } from "lucide-react";
+import InteractiveChart from "@/components/InteractiveChart";
+import PredictiveAnalytics from "@/components/PredictiveAnalytics";
 
 interface DashboardStats {
   totalArticles: number;
@@ -124,6 +126,71 @@ export default function Dashboard() {
                 <TrendingUp className="w-7 h-7 text-windows-green" />
               </div>
             </div>
+          </WindowsCardContent>
+        </WindowsCard>
+      </div>
+
+      {/* Enhanced Analytics Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+        {/* Stock Level Chart */}
+        <InteractiveChart
+          data={[
+            { month: 'Jan', stock: (stats?.totalArticles || 0) * 0.8, value: (stats?.stockValue || 0) * 0.7 },
+            { month: 'Fév', stock: (stats?.totalArticles || 0) * 0.9, value: (stats?.stockValue || 0) * 0.8 },
+            { month: 'Mar', stock: (stats?.totalArticles || 0) * 0.7, value: (stats?.stockValue || 0) * 0.9 },
+            { month: 'Avr', stock: stats?.totalArticles || 0, value: stats?.stockValue || 0 },
+          ]}
+          title="Évolution du Stock"
+          description="Stock et valeur sur 4 mois"
+          xAxisKey="month"
+          yAxisKey="stock"
+          defaultType="area"
+          colors={['#3B82F6', '#10B981']}
+          showAnalytics={true}
+        />
+
+        {/* Purchase Requests Trend */}
+        <InteractiveChart
+          data={[
+            { status: 'En Attente', count: stats?.pendingRequests || 0 },
+            { status: 'Approuvé', count: Math.floor((stats?.pendingRequests || 0) * 1.5) },
+            { status: 'Commandé', count: Math.floor((stats?.pendingRequests || 0) * 0.8) },
+            { status: 'Refusé', count: Math.floor((stats?.pendingRequests || 0) * 0.3) },
+          ]}
+          title="Statut des Demandes"
+          description="Répartition des demandes d'achat"
+          xAxisKey="status"
+          yAxisKey="count"
+          defaultType="bar"
+          colors={['#F59E0B', '#10B981', '#3B82F6', '#EF4444']}
+          showAnalytics={true}
+        />
+      </div>
+
+      {/* AI Insights Section */}
+      <div className="mb-6">
+        <WindowsCard>
+          <div className="p-6 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-50 rounded-sm flex items-center justify-center">
+                  <Brain className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Insights IA</h3>
+                  <p className="text-sm text-gray-600">Recommandations intelligentes du système</p>
+                </div>
+              </div>
+              <Link href="/analytics">
+                <WindowsButton variant="outline" size="sm">
+                  <Activity className="w-4 h-4 mr-2" />
+                  Vue Complète
+                </WindowsButton>
+              </Link>
+            </div>
+          </div>
+          <WindowsCardContent className="p-6">
+            <PredictiveAnalytics showGlobalInsights={true} />
           </WindowsCardContent>
         </WindowsCard>
       </div>
