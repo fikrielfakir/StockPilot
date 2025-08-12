@@ -1,23 +1,18 @@
-import { useState } from "react";
-import Sidebar from "./Sidebar";
-import TopBar from "./TopBar";
+import TopNavigation from "./TopNavigation";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [activeModule, setActiveModule] = useState("dashboard");
-
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50" data-testid="main-layout">
-      <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar activeModule={activeModule} />
-        <main className="flex-1 overflow-y-auto p-6" data-testid="main-content">
+    <div className="min-h-screen bg-gray-50" data-testid="main-layout" style={{ fontFamily: '"Segoe UI", system-ui, sans-serif' }}>
+      <TopNavigation />
+      <main className="windows-scrollbar overflow-y-auto" data-testid="main-content" style={{ height: 'calc(100vh - 86px)' }}>
+        <div className="p-6">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
