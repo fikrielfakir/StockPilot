@@ -10,6 +10,16 @@ The system is specifically tailored for industrial environments where precise in
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+### December 2024
+- Successfully migrated StockCéramique from Replit Agent to standard Replit environment
+- Added new modules as requested:
+  - **"Suivi des Achats" (Purchase Follow-up)**: Complete purchase request tracking with status management (En Attente, Approuvé, Commandé, Refusé)
+  - **"État du Stock" (Stock Status)**: Comprehensive inventory overview with stock level analysis, filtering, and visual indicators
+- Enhanced navigation sidebar with new module links
+- Implemented responsive UI components using Shadcn/ui for consistent design
+
 ## System Architecture
 
 ### Frontend Architecture

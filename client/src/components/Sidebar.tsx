@@ -9,6 +9,8 @@ const menuItems = [
   { id: "dashboard", path: "/", icon: "fas fa-tachometer-alt", label: "Tableau de Bord" },
   { id: "articles", path: "/articles", icon: "fas fa-cogs", label: "Articles" },
   { id: "purchase-requests", path: "/purchase-requests", icon: "fas fa-shopping-cart", label: "Demandes d'Achat" },
+  { id: "purchase-follow", path: "/purchase-follow", icon: "fas fa-clipboard-list", label: "Suivi des Achats" },
+  { id: "stock-status", path: "/stock-status", icon: "fas fa-chart-bar", label: "État du Stock" },
   { id: "reception", path: "/reception", icon: "fas fa-truck", label: "Réception" },
   { id: "outbound", path: "/outbound", icon: "fas fa-sign-out-alt", label: "Sortie de Stock" },
   { id: "suppliers", path: "/suppliers", icon: "fas fa-building", label: "Fournisseurs" },

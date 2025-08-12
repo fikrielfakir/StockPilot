@@ -9,6 +9,8 @@ import Articles from "@/pages/Articles";
 import Suppliers from "@/pages/Suppliers";
 import Requestors from "@/pages/Requestors";
 import PurchaseRequests from "@/pages/PurchaseRequests";
+import PurchaseFollow from "@/pages/PurchaseFollow";
+import StockStatus from "@/pages/StockStatus";
 import Reception from "@/pages/Reception";
 import Outbound from "@/pages/Outbound";
 import Reports from "@/pages/Reports";
@@ -24,6 +26,8 @@ function Router() {
         <Route path="/suppliers" component={Suppliers} />
         <Route path="/requestors" component={Requestors} />
         <Route path="/purchase-requests" component={PurchaseRequests} />
+        <Route path="/purchase-follow" component={PurchaseFollow} />
+        <Route path="/stock-status" component={StockStatus} />
         <Route path="/reception" component={Reception} />
         <Route path="/outbound" component={Outbound} />
         <Route path="/reports" component={Reports} />
