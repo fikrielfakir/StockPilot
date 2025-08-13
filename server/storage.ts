@@ -164,6 +164,7 @@ export class MemStorage implements IStorage {
       reference: article.reference ?? null,
       fournisseurId: article.fournisseurId ?? null,
       seuilMinimum: article.seuilMinimum ?? null,
+      unite: article.unite || "pcs", // Ensure unite is always a string
     };
     this.articles.set(id, newArticle);
     return newArticle;

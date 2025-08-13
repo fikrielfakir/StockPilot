@@ -96,6 +96,58 @@ export const stockMovements = pgTable("stock_movements", {
   description: text("description"),
 });
 
+// Users and Authentication
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  email: text("email").unique(),
+  hashedPassword: text("hashed_password").notNull(),
+  role: text("role").notNull().default("demandeur"), // admin, super_admin, magasinier, demandeur, read_only
+  isActive: integer("is_active").notNull().default(1), // 1 = active, 0 = inactive
+  lastLogin: timestamp("last_login"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// System Settings
+export const systemSettings = pgTable("system_settings", {
+  id: varchar("id").primaryKey(),
+  category: text("category").notNull(), // stock_management, security, backup, etc.
+  key: text("key").notNull(),
+  value: text("value"),
+  dataType: text("data_type").notNull().default("string"), // string, number, boolean, json
+  description: text("description"),
+  isEditable: integer("is_editable").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Audit Logs
+export const auditLogs = pgTable("audit_logs", {
+  id: varchar("id").primaryKey(),
+  userId: varchar("user_id"),
+  action: text("action").notNull(), // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, etc.
+  entityType: text("entity_type"), // articles, suppliers, etc.
+  entityId: varchar("entity_id"),
+  oldValues: text("old_values"), // JSON string
+  newValues: text("new_values"), // JSON string
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Backup Logs
+export const backupLogs = pgTable("backup_logs", {
+  id: varchar("id").primaryKey(),
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size"), // bytes
+  backupType: text("backup_type").notNull(), // manual, scheduled
+  status: text("status").notNull().default("in_progress"), // in_progress, completed, failed
+  createdBy: varchar("created_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertArticleSchema = createInsertSchema(articles).omit({
   id: true,
@@ -140,6 +192,34 @@ export const insertOutboundSchema = createInsertSchema(outbounds).omit({
   dateSortie: z.string().transform((str) => new Date(str)),
 });
 
+export const insertStockMovementSchema = createInsertSchema(stockMovements).omit({
+  id: true,
+});
+
+// New schemas for admin settings
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastLogin: true,
+});
+
+export const insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertBackupLogSchema = createInsertSchema(backupLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Schema for converting purchase request to reception
 export const convertToReceptionSchema = z.object({
   quantiteRecue: z.number().positive().optional(),
@@ -148,27 +228,6 @@ export const convertToReceptionSchema = z.object({
   observations: z.string().optional(),
   dateReception: z.string().optional(),
 });
-
-// Types
-export type Article = typeof articles.$inferSelect;
-export type InsertArticle = z.infer<typeof insertArticleSchema>;
-
-export type Supplier = typeof suppliers.$inferSelect;
-export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
-
-export type Requestor = typeof requestors.$inferSelect;
-export type InsertRequestor = z.infer<typeof insertRequestorSchema>;
-
-export type PurchaseRequest = typeof purchaseRequests.$inferSelect;
-export type InsertPurchaseRequest = z.infer<typeof insertPurchaseRequestSchema>;
-
-export type Reception = typeof receptions.$inferSelect;
-export type InsertReception = z.infer<typeof insertReceptionSchema>;
-
-export type Outbound = typeof outbounds.$inferSelect;
-export type InsertOutbound = z.infer<typeof insertOutboundSchema>;
-
-export type StockMovement = typeof stockMovements.$inferSelect;
 
 export type ConvertToReception = z.infer<typeof convertToReceptionSchema>;
 

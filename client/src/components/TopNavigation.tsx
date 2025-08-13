@@ -124,6 +124,10 @@ export default function TopNavigation() {
                 <User className="w-4 h-4 mr-2" />
                 Profil
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.location.href = '/admin'}>
+                <Settings className="w-4 h-4 mr-2" />
+                Administration
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
                 <Settings className="w-4 h-4 mr-2" />
                 Paramètres
