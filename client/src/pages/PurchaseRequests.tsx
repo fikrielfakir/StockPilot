@@ -104,19 +104,19 @@ export default function PurchaseRequests() {
     return supplier?.nom || "Fournisseur inconnu";
   };
 
-  const getStatusBadge = (statut: string) => {
+  const getStatusText = (statut: string) => {
     const statusConfig = {
-      en_attente: { color: "bg-ms-amber text-white", label: "En attente" },
-      approuve: { color: "bg-ms-green text-white", label: "Approuvé" },
-      refuse: { color: "bg-ms-red text-white", label: "Refusé" },
-      commande: { color: "bg-ms-blue text-white", label: "Commandé" },
+      en_attente: { color: "text-yellow-600 dark:text-yellow-400", label: "En attente" },
+      approuve: { color: "text-green-600 dark:text-green-400", label: "Approuvé" },
+      refuse: { color: "text-red-600 dark:text-red-400", label: "Refusé" },
+      commande: { color: "text-blue-600 dark:text-blue-400", label: "Commandé" },
     };
     
     const config = statusConfig[statut as keyof typeof statusConfig] || statusConfig.en_attente;
     return (
-      <Badge className={config.color}>
+      <span className={`font-semibold ${config.color}`} data-testid={`status-${statut}`}>
         {config.label}
-      </Badge>
+      </span>
     );
   };
 
@@ -257,7 +257,7 @@ export default function PurchaseRequests() {
                       <td className="p-4 text-sm text-ms-gray-dark">{getRequestorName(request.requestorId)}</td>
                       <td className="p-4 text-sm text-ms-gray-dark">{getArticleName(request.articleId)}</td>
                       <td className="p-4 text-sm font-medium text-ms-gray-dark">{request.quantiteDemandee}</td>
-                      <td className="p-4">{getStatusBadge(request.statut)}</td>
+                      <td className="p-4">{getStatusText(request.statut)}</td>
                       <td className="p-4 text-sm text-ms-gray">{getSupplierName(request.supplierId)}</td>
                       <td className="p-4">
                         <div className="flex space-x-2">
