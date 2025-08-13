@@ -125,6 +125,14 @@
   .text-windows-blue {
     color: var(--windows-blue);
   }
+
+  .focus\:border-windows-blue:focus {
+    border-color: var(--windows-blue);
+  }
+
+  .focus\:ring-windows-blue:focus {
+    --tw-ring-color: var(--windows-blue);
+  }
   
   /* Windows-style cards */
   .windows-card {

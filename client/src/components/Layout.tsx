@@ -10,7 +10,7 @@ export default function Layout({ children }: LayoutProps) {
       <div className="sticky top-0 z-50">
         <TopNavigation />
       </div>
-      <main className="windows-scrollbar overflow-y-auto" data-testid="main-content" style={{ height: 'calc(100vh - 86px)' }}>
+      <main className="windows-scrollbar overflow-y-auto" data-testid="main-content" style={{ height: 'calc(100vh - 112px)' }}>
         <div className="p-6">
           {children}
         </div>
