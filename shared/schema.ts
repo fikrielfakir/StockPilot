@@ -121,6 +121,7 @@ export const insertPurchaseRequestSchema = createInsertSchema(purchaseRequests).
   dateInitiation: true,
 }).extend({
   supplierId: z.string().nullable().optional(),
+  dateDemande: z.string().transform((str) => new Date(str)),
 });
 
 export const insertReceptionSchema = createInsertSchema(receptions).omit({
@@ -128,11 +129,14 @@ export const insertReceptionSchema = createInsertSchema(receptions).omit({
   createdAt: true,
 }).extend({
   prixUnitaire: z.coerce.number().nullable().optional(),
+  dateReception: z.string().transform((str) => new Date(str)),
 });
 
 export const insertOutboundSchema = createInsertSchema(outbounds).omit({
   id: true,
   createdAt: true,
+}).extend({
+  dateSortie: z.string().transform((str) => new Date(str)),
 });
 
 // Types
