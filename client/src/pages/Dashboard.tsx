@@ -5,8 +5,7 @@ import { Link } from "wouter";
 import { Package, AlertTriangle, ShoppingCart, TrendingUp, Truck, Plus, FileText, Brain, Activity } from "lucide-react";
 import SimpleChart from "@/components/SimpleChart";
 import PredictiveAnalytics from "@/components/PredictiveAnalytics";
-import TopNavBar from "@/components/TopNavBar";
-import SecondaryNavBar from "@/components/SecondaryNavBar";
+
 
 interface DashboardStats {
   totalArticles: number;
@@ -26,7 +25,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div>
         <div className="bg-white border-b border-gray-200 px-6 py-4 mb-6">
           <h1 className="text-2xl font-semibold text-gray-900 mb-1">Tableau de Bord</h1>
           <p className="text-sm text-gray-600">Vue d'ensemble de votre système de gestion de stock</p>
@@ -52,13 +51,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Bar */}
-      <TopNavBar />
-      
-      {/* Secondary Navigation Bar */}
-      <SecondaryNavBar />
-      
+    <div>
       {/* Page Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 mb-6">
         <h1 className="text-2xl font-semibold text-gray-900 mb-1">Tableau de Bord</h1>
