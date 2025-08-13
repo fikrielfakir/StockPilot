@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertArticleSchema, insertSupplierSchema, insertRequestorSchema, insertPurchaseRequestSchema, insertReceptionSchema, insertOutboundSchema, convertToReceptionSchema, insertCategorySchema, insertMarqueSchema, insertDepartementSchema, insertPosteSchema, insertUserSchema, insertSystemSettingSchema, insertAuditLogSchema, insertBackupLogSchema, users, systemSettings, auditLogs, backupLogs } from "@shared/schema";
+import { insertArticleSchema, insertSupplierSchema, insertRequestorSchema, insertPurchaseRequestSchema, insertReceptionSchema, insertOutboundSchema, convertToReceptionSchema, insertCategorySchema, insertMarqueSchema, insertDepartementSchema, insertPosteSchema, insertUserSchema, insertSystemSettingSchema, insertAuditLogSchema, insertBackupLogSchema, insertCompletePurchaseRequestSchema, insertPurchaseRequestItemSchema, users, systemSettings, auditLogs, backupLogs, purchaseRequestItems, purchaseRequests } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -355,6 +355,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Erreur lors de la suppression" });
+    }
+  });
+
+  // Create complete purchase request with multiple articles
+  app.post("/api/purchase-requests/complete", async (req, res) => {
+    try {
+      const validatedData = insertCompletePurchaseRequestSchema.parse(req.body);
+      const purchaseRequestId = randomUUID();
+      
+      // Create main purchase request header
+      const headerData = {
+        id: purchaseRequestId,
+        dateDemande: validatedData.dateDemande,
+        requestorId: validatedData.requestorId,
+        observations: validatedData.observations || null,
+        totalArticles: validatedData.items.length,
+        statut: "en_attente",
+      };
+      
+      // Insert the header into purchase_requests table
+      const [purchaseRequest] = await db.insert(purchaseRequests).values(headerData).returning();
+      
+      // Insert all items into purchase_request_items table
+      const itemsData = validatedData.items.map(item => ({
+        id: randomUUID(),
+        purchaseRequestId: purchaseRequestId,
+        articleId: item.articleId,
+        quantiteDemandee: item.quantiteDemandee,
+        supplierId: item.supplierId || null,
+        prixUnitaireEstime: item.prixUnitaireEstime || null,
+        observations: item.observations || null,
+      }));
+      
+      const items = await db.insert(purchaseRequestItems).values(itemsData).returning();
+      
+      res.status(201).json({
+        ...purchaseRequest,
+        items: items
+      });
+    } catch (error) {
+      console.error("Complete purchase request creation error:", error);
+      res.status(400).json({ message: "Données invalides", error });
     }
   });
 

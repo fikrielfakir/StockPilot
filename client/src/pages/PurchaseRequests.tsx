@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import PurchaseRequestForm from "@/components/PurchaseRequestForm";
+import EnhancedPurchaseRequestForm from "@/components/EnhancedPurchaseRequestForm";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,7 @@ import type { PurchaseRequest } from "@shared/schema";
 
 export default function PurchaseRequests() {
   const [showForm, setShowForm] = useState(false);
+  const [showEnhancedForm, setShowEnhancedForm] = useState(false);
   const [editingRequest, setEditingRequest] = useState<PurchaseRequest | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -195,11 +197,19 @@ export default function PurchaseRequests() {
               />
               <Button 
                 onClick={() => setShowForm(true)}
-                className="btn-ms-blue flex items-center space-x-2"
+                className="btn-ms-blue flex items-center space-x-2 mr-2"
                 data-testid="button-add-request"
               >
                 <i className="fas fa-plus"></i>
-                <span>Nouvelle Demande</span>
+                <span>Demande Simple</span>
+              </Button>
+              <Button 
+                onClick={() => setShowEnhancedForm(true)}
+                className="btn-ms-green flex items-center space-x-2"
+                data-testid="button-add-enhanced-request"
+              >
+                <i className="fas fa-layer-group"></i>
+                <span>Multi-Articles</span>
               </Button>
             </div>
           </div>
@@ -350,6 +360,12 @@ export default function PurchaseRequests() {
         <PurchaseRequestForm 
           request={editingRequest}
           onClose={handleCloseForm}
+        />
+      )}
+
+      {showEnhancedForm && (
+        <EnhancedPurchaseRequestForm 
+          onClose={() => setShowEnhancedForm(false)}
         />
       )}
     </div>

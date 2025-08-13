@@ -44,17 +44,27 @@ export const requestors = pgTable("requestors", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Purchase Requests
+// Purchase Requests (Header)
 export const purchaseRequests = pgTable("purchase_requests", {
   id: varchar("id").primaryKey(),
   dateDemande: timestamp("date_demande").notNull().defaultNow(),
   requestorId: varchar("requestor_id").notNull(),
-  articleId: varchar("article_id").notNull(),
-  quantiteDemandee: integer("quantite_demandee").notNull(),
   dateInitiation: timestamp("date_initiation").defaultNow(),
   observations: text("observations"),
   statut: text("statut").notNull().default("en_attente"), // en_attente, approuve, refuse, commande
+  totalArticles: integer("total_articles").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Purchase Request Items (Details for multiple articles)
+export const purchaseRequestItems = pgTable("purchase_request_items", {
+  id: varchar("id").primaryKey(),
+  purchaseRequestId: varchar("purchase_request_id").notNull(),
+  articleId: varchar("article_id").notNull(),
+  quantiteDemandee: integer("quantite_demandee").notNull(),
   supplierId: varchar("supplier_id"),
+  prixUnitaireEstime: decimal("prix_unitaire_estime", { precision: 10, scale: 2 }),
+  observations: text("observations"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -172,9 +182,31 @@ export const insertPurchaseRequestSchema = createInsertSchema(purchaseRequests).
   id: true,
   createdAt: true,
   dateInitiation: true,
+  totalArticles: true,
 }).extend({
-  supplierId: z.string().nullable().optional(),
   dateDemande: z.string().transform((str) => new Date(str)),
+});
+
+export const insertPurchaseRequestItemSchema = createInsertSchema(purchaseRequestItems).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  prixUnitaireEstime: z.coerce.number().nullable().optional(),
+  supplierId: z.string().nullable().optional(),
+});
+
+// Complete purchase request with items
+export const insertCompletePurchaseRequestSchema = z.object({
+  dateDemande: z.string().transform((str) => new Date(str)),
+  requestorId: z.string(),
+  observations: z.string().optional(),
+  items: z.array(z.object({
+    articleId: z.string(),
+    quantiteDemandee: z.number().positive(),
+    supplierId: z.string().nullable().optional(),
+    prixUnitaireEstime: z.coerce.number().nullable().optional(),
+    observations: z.string().optional(),
+  })).min(1, "Au moins un article est requis"),
 });
 
 export const insertReceptionSchema = createInsertSchema(receptions).omit({
@@ -294,3 +326,8 @@ export type InsertDepartement = z.infer<typeof insertDepartementSchema>;
 
 export type Poste = typeof postes.$inferSelect;
 export type InsertPoste = z.infer<typeof insertPosteSchema>;
+
+// New types for enhanced purchase requests
+export type PurchaseRequestItem = typeof purchaseRequestItems.$inferSelect;
+export type InsertPurchaseRequestItem = z.infer<typeof insertPurchaseRequestItemSchema>;
+export type CompletePurchaseRequest = z.infer<typeof insertCompletePurchaseRequestSchema>;
