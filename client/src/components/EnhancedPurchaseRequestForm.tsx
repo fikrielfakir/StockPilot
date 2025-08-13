@@ -10,7 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { insertCompletePurchaseRequestSchema, type CompletePurchaseRequest, type Article, type Requestor, type Supplier } from "@shared/schema";
+import { insertCompletePurchaseRequestSchema, type CompletePurchaseRequest, articles, requestors, suppliers } from "@shared/schema";
+
+type Article = typeof articles.$inferSelect;
+type Requestor = typeof requestors.$inferSelect;
+type Supplier = typeof suppliers.$inferSelect;
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +47,7 @@ export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchas
     queryKey: ["/api/suppliers"],
   });
 
-  const form = useForm<CompletePurchaseRequest>({
+  const form = useForm({
     resolver: zodResolver(insertCompletePurchaseRequestSchema),
     defaultValues: {
       dateDemande: new Date().toISOString().split('T')[0],
@@ -67,7 +71,7 @@ export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchas
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: CompletePurchaseRequest) => apiRequest("POST", "/api/purchase-requests/complete", data),
+    mutationFn: (data: any) => apiRequest("POST", "/api/purchase-requests/complete", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/purchase-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
@@ -86,9 +90,9 @@ export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchas
     },
   });
 
-  const onSubmit = (data: CompletePurchaseRequest) => {
+  const onSubmit = (data: any) => {
     // Validate that all articles are selected
-    const invalidItems = data.items.filter(item => !item.articleId);
+    const invalidItems = data.items.filter((item: any) => !item.articleId);
     if (invalidItems.length > 0) {
       toast({
         title: "Articles manquants",
@@ -107,7 +111,7 @@ export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchas
     
     // Auto-fill estimated price if available
     if (article.prixUnitaire) {
-      form.setValue(`items.${index}.prixUnitaireEstime`, parseFloat(article.prixUnitaire));
+      form.setValue(`items.${index}.prixUnitaireEstime` as any, parseFloat(article.prixUnitaire));
     }
   };
 
@@ -347,7 +351,7 @@ export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchas
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Aucune préférence</SelectItem>
+                                <SelectItem value="none">Aucune préférence</SelectItem>
                                 {suppliers.map((supplier) => (
                                   <SelectItem key={supplier.id} value={supplier.id}>
                                     {supplier.nom}
@@ -384,7 +388,7 @@ export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchas
                       <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <div className="flex items-center justify-between text-sm">
                           <div>
-                            <span className="font-medium">{selectedArticles[index].nom}</span>
+                            <span className="font-medium">{selectedArticles[index].designation}</span>
                             <span className="text-gray-600 ml-2">
                               Stock disponible: {selectedArticles[index].stockActuel}
                             </span>

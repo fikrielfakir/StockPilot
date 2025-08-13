@@ -5,7 +5,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { type Article } from "@shared/schema";
+import { articles } from "@shared/schema";
+
+type Article = typeof articles.$inferSelect;
 
 interface ArticleAutocompleteProps {
   value?: string;
@@ -28,12 +30,13 @@ export default function ArticleAutocomplete({
   });
 
   const filteredArticles = articles.filter((article) => {
+    if (!article || typeof search !== 'string') return false;
     const searchLower = search.toLowerCase();
     return (
-      article.nom.toLowerCase().includes(searchLower) ||
-      article.reference.toLowerCase().includes(searchLower) ||
-      article.description?.toLowerCase().includes(searchLower) ||
-      article.emplacement?.toLowerCase().includes(searchLower)
+      (article.designation || '').toLowerCase().includes(searchLower) ||
+      (article.reference || '').toLowerCase().includes(searchLower) ||
+      (article.codeArticle || '').toLowerCase().includes(searchLower) ||
+      (article.categorie || '').toLowerCase().includes(searchLower)
     );
   });
 
@@ -53,7 +56,7 @@ export default function ArticleAutocomplete({
             <Package className="w-4 h-4 text-gray-500" />
             {selectedArticle ? (
               <div className="flex flex-col items-start text-left">
-                <span className="font-medium">{selectedArticle.nom}</span>
+                <span className="font-medium">{selectedArticle.designation}</span>
                 <span className="text-xs text-gray-500">
                   {selectedArticle.reference} • Stock: {selectedArticle.stockActuel}
                 </span>
@@ -89,7 +92,7 @@ export default function ArticleAutocomplete({
                   <div className="flex items-center space-x-3">
                     <Package className="w-4 h-4 text-gray-500" />
                     <div className="flex flex-col">
-                      <span className="font-medium">{article.nom}</span>
+                      <span className="font-medium">{article.designation}</span>
                       <div className="flex items-center space-x-4 text-xs text-gray-500">
                         <span>Réf: {article.reference}</span>
                         <span>Stock: {article.stockActuel}</span>
@@ -97,11 +100,9 @@ export default function ArticleAutocomplete({
                           <span>Prix: {article.prixUnitaire}€</span>
                         )}
                       </div>
-                      {article.description && (
-                        <span className="text-xs text-gray-400 mt-1 max-w-[300px] truncate">
-                          {article.description}
-                        </span>
-                      )}
+                      <span className="text-xs text-gray-400 mt-1 max-w-[300px] truncate">
+                        {article.categorie} - {article.codeArticle}
+                      </span>
                     </div>
                   </div>
                   <Check
