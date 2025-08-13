@@ -5,82 +5,45 @@
 @tailwind utilities;
 
 :root {
-  /* Windows 11 Fluent Design System colors */
+  /* Windows 10 inspired color scheme */
   --background: hsl(0 0% 98%);
   --foreground: hsl(0 0% 13%);
-  --card: hsla(0, 0%, 100%, 0.8);
+  --card: hsl(0 0% 100%);
   --card-foreground: hsl(0 0% 13%);
-  --popover: hsla(0, 0%, 100%, 0.9);
+  --popover: hsl(0 0% 100%);
   --popover-foreground: hsl(0 0% 13%);
-  --primary: hsl(206 100% 50%);
+  --primary: hsl(210 100% 42%);
   --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(220 14% 96%);
+  --secondary: hsl(217 32% 96%);
   --secondary-foreground: hsl(0 0% 13%);
-  --muted: hsl(220 14% 96%);
+  --muted: hsl(217 32% 96%);
   --muted-foreground: hsl(215 16% 47%);
-  --accent: hsl(220 14% 96%);
-  --accent-foreground: hsl(206 100% 50%);
-  --destructive: hsl(0 84% 60%);
+  --accent: hsl(217 32% 96%);
+  --accent-foreground: hsl(210 100% 42%);
+  --destructive: hsl(0 73% 41%);
   --destructive-foreground: hsl(0 0% 100%);
-  --border: hsl(220 13% 91%);
-  --input: hsl(220 13% 91%);
-  --ring: hsl(206 100% 50%);
-  --radius: 8px;
+  --border: hsl(214 32% 91%);
+  --input: hsl(214 32% 91%);
+  --ring: hsl(210 100% 42%);
+  --radius: 2px;
   
-  /* Windows 11 Fluent Design colors */
-  --fluent-blue: #0078d4;
-  --fluent-blue-light: #40e0ff;
-  --fluent-green: #16c60c;
-  --fluent-green-light: #54d17a;
-  --fluent-yellow: #ffb900;
-  --fluent-yellow-light: #fce100;
-  --fluent-orange: #d83b01;
-  --fluent-orange-light: #ff8c00;
-  --fluent-red: #e74856;
-  --fluent-red-light: #ff99a4;
-  --fluent-purple: #8764b8;
-  --fluent-purple-light: #b794f6;
+  /* Windows 10 official colors */
+  --windows-blue: #0078d4;
+  --windows-blue-dark: #106ebe;
+  --windows-blue-darker: #005a9e;
+  --windows-light-blue: #40e0d0;
+  --windows-green: #107c10;
+  --windows-amber: #ff8c00;
+  --windows-red: #d13438;
+  --windows-purple: #881798;
+  --windows-gray-lightest: #faf9f8;
+  --windows-gray-light: #f3f2f1;
+  --windows-gray: #605e5c;
+  --windows-gray-dark: #323130;
+  --windows-gray-darkest: #201f1e;
   
-  /* Windows 11 neutral colors */
-  --gray-10: #faf9f8;
-  --gray-20: #f3f2f1;
-  --gray-30: #edebe9;
-  --gray-40: #e1dfdd;
-  --gray-50: #d2d0ce;
-  --gray-60: #c8c6c4;
-  --gray-70: #bebbb8;
-  --gray-80: #b3b0ad;
-  --gray-90: #a19f9d;
-  --gray-100: #979593;
-  --gray-110: #8a8886;
-  --gray-120: #797775;
-  --gray-130: #605e5c;
-  --gray-140: #484644;
-  --gray-150: #323130;
-  --gray-160: #292827;
-  --gray-170: #201f1e;
-  --gray-180: #161514;
-  --gray-190: #0b0a09;
-  
-  /* Typography - Segoe UI Variable */
-  --font-family-segoe: 'Segoe UI Variable', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
-  --font-weight-light: 300;
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  
-  /* Shadows and effects */
-  --shadow-2: 0 1px 2px rgba(0, 0, 0, 0.12);
-  --shadow-4: 0 2px 4px rgba(0, 0, 0, 0.14);
-  --shadow-8: 0 4px 8px rgba(0, 0, 0, 0.16);
-  --shadow-16: 0 8px 16px rgba(0, 0, 0, 0.18);
-  --shadow-64: 0 32px 64px rgba(0, 0, 0, 0.24);
-  
-  /* Acrylic/Mica effects */
-  --acrylic-background: rgba(255, 255, 255, 0.7);
-  --acrylic-border: rgba(255, 255, 255, 0.2);
-  --mica-background: rgba(249, 249, 249, 0.8);
+  /* Windows fonts */
+  --font-system: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
 }
 
 .dark {
@@ -111,144 +74,8 @@
   }
   
   body {
-    font-family: var(--font-family-segoe);
-    background: var(--background);
-    color: var(--foreground);
-    font-feature-settings: 'liga' on, 'calt' on;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  
-  /* Windows 11 Fluent Design scrollbars */
-  ::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: var(--gray-20);
-    border-radius: 6px;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: var(--gray-100);
-    border-radius: 6px;
-    border: 2px solid var(--gray-20);
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--gray-120);
-  }
-}
-
-@layer components {
-  /* Fluent Design cards with acrylic effect */
-  .fluent-card {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 rounded-xl shadow-lg;
-    box-shadow: var(--shadow-8);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  
-  .fluent-card:hover {
-    @apply transform -translate-y-1;
-    box-shadow: var(--shadow-16);
-  }
-  
-  /* Fluent Design buttons */
-  .fluent-button {
-    @apply px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2;
-    background: linear-gradient(135deg, var(--fluent-blue) 0%, var(--fluent-blue-light) 100%);
-    color: white;
-    box-shadow: var(--shadow-4);
-  }
-  
-  .fluent-button:hover {
-    @apply transform -translate-y-0.5;
-    box-shadow: var(--shadow-8);
-    filter: brightness(1.1);
-  }
-  
-  .fluent-button:active {
-    @apply transform translate-y-0;
-    box-shadow: var(--shadow-2);
-  }
-  
-  /* Mica background effect for navigation */
-  .mica-surface {
-    background: var(--mica-background);
-    backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--acrylic-border);
-  }
-  
-  /* Fluent Design sidebar */
-  .fluent-sidebar {
-    @apply mica-surface rounded-r-2xl;
-    box-shadow: var(--shadow-8);
-  }
-  
-  /* Fluent Design navigation items */
-  .fluent-nav-item {
-    @apply flex items-center gap-3 px-4 py-3 mx-2 rounded-lg font-medium transition-all duration-200;
-    color: var(--gray-130);
-  }
-  
-  .fluent-nav-item:hover {
-    background: var(--acrylic-background);
-    color: var(--fluent-blue);
-    backdrop-filter: blur(10px);
-  }
-  
-  .fluent-nav-item.active {
-    background: var(--fluent-blue);
-    color: white;
-    box-shadow: var(--shadow-4);
-  }
-  
-  /* Dashboard stat cards */
-  .stat-card-blue {
-    background: linear-gradient(135deg, var(--fluent-blue) 0%, var(--fluent-blue-light) 100%);
-  }
-  
-  .stat-card-green {
-    background: linear-gradient(135deg, var(--fluent-green) 0%, var(--fluent-green-light) 100%);
-  }
-  
-  .stat-card-yellow {
-    background: linear-gradient(135deg, var(--fluent-yellow) 0%, var(--fluent-yellow-light) 100%);
-  }
-  
-  .stat-card-orange {
-    background: linear-gradient(135deg, var(--fluent-orange) 0%, var(--fluent-orange-light) 100%);
-  }
-  
-  .stat-card-red {
-    background: linear-gradient(135deg, var(--fluent-red) 0%, var(--fluent-red-light) 100%);
-  }
-  
-  /* Typography styles */
-  .fluent-title {
-    font-family: var(--font-family-segoe);
-    font-weight: var(--font-weight-bold);
-    color: var(--gray-160);
-  }
-  
-  .fluent-subtitle {
-    font-family: var(--font-family-segoe);
-    font-weight: var(--font-weight-medium);
-    color: var(--gray-140);
-  }
-  
-  .fluent-body {
-    font-family: var(--font-family-segoe);
-    font-weight: var(--font-weight-regular);
-    color: var(--gray-130);
-  }
-  
-  .fluent-caption {
-    font-family: var(--font-family-segoe);
-    font-weight: var(--font-weight-regular);
-    color: var(--gray-110);
-    font-size: 0.875rem;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: var(--font-system);
   }
 }
 

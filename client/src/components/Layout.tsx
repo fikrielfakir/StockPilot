@@ -1,5 +1,4 @@
-import FluentTopNav from "./FluentTopNav";
-import FluentSidebar from "./FluentSidebar";
+import TopNavigation from "./TopNavigation";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,23 +6,13 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30" 
-         data-testid="main-layout" 
-         style={{ fontFamily: 'var(--font-family-segoe)' }}>
-      
-      {/* Top Navigation */}
-      <FluentTopNav />
-      
-      {/* Main Content Area */}
-      <div className="flex h-screen pt-16">
-        {/* Sidebar */}
-        <FluentSidebar />
-        
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto" data-testid="main-content">
+    <div className="min-h-screen bg-gray-50" data-testid="main-layout" style={{ fontFamily: '"Segoe UI", system-ui, sans-serif' }}>
+      <TopNavigation />
+      <main className="windows-scrollbar overflow-y-auto" data-testid="main-content" style={{ height: 'calc(100vh - 86px)' }}>
+        <div className="p-6">
           {children}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
