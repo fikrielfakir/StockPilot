@@ -321,16 +321,134 @@ export default function FluentChart({
       transition={{ duration: 0.5, ease: "easeOut" }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      className="h-full"
     >
-      <div 
-        className="relative rounded-xl overflow-hidden"
-        style={{
-          background: 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)'
-        }}
-      >
+      <div className="relative h-full">
+        {title && (
+          <div className="p-6 border-b border-gray-100/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily: 'Segoe UI Variable' }}>
+                  {title}
+                </h3>
+                {description && (
+                  <p className="text-sm text-gray-600 mt-1" style={{ fontFamily: 'Segoe UI Variable' }}>
+                    {description}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                {onExport && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onExport('png')}
+                    className="flex items-center space-x-1 bg-white/50 backdrop-blur-sm border-gray-200/50 hover:bg-white/70"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Export</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="p-6">
+          {showAnalytics && analytics && (
+              <motion.div 
+                className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.4 }}
+              >
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Segoe UI Variable' }}>
+                    {formatValue(analytics.total)}
+                  </div>
+                  <div className="text-xs text-gray-600" style={{ fontFamily: 'Segoe UI Variable' }}>Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'Segoe UI Variable' }}>
+                    {formatValue(analytics.average)}
+                  </div>
+                  <div className="text-xs text-gray-600" style={{ fontFamily: 'Segoe UI Variable' }}>Moyenne</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600" style={{ fontFamily: 'Segoe UI Variable' }}>
+                    {formatValue(analytics.max)}
+                  </div>
+                  <div className="text-xs text-gray-600" style={{ fontFamily: 'Segoe UI Variable' }}>Maximum</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600" style={{ fontFamily: 'Segoe UI Variable' }}>
+                    {formatValue(analytics.min)}
+                  </div>
+                  <div className="text-xs text-gray-600" style={{ fontFamily: 'Segoe UI Variable' }}>Minimum</div>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center space-x-1">
+                    {analytics.trend > 0 ? (
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 text-red-600" />
+                    )}
+                    <span className={`text-2xl font-bold ${analytics.trend > 0 ? 'text-green-600' : 'text-red-600'}`} style={{ fontFamily: 'Segoe UI Variable' }}>
+                      {analytics.trend > 0 ? '+' : ''}{analytics.trend.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-600" style={{ fontFamily: 'Segoe UI Variable' }}>Tendance</div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Chart */}
+            <motion.div 
+              className="h-64"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                {renderChart()}
+              </ResponsiveContainer>
+            </motion.div>
+
+            {/* Legend */}
+            {type === 'bar' && data.length > 0 && (
+              <motion.div 
+                className="flex justify-center mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
+              >
+                <div className="flex flex-wrap justify-center gap-4">
+                  {data.map((entry, index) => (
+                    <div 
+                      key={index} 
+                      className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-white/50 backdrop-blur-sm transition-all hover:bg-white/70"
+                    >
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: colors[index % colors.length] }}
+                      />
+                      <span 
+                        className="text-sm text-gray-700" 
+                        style={{ fontFamily: 'Segoe UI Variable' }}
+                      >
+                        {entry[xAxisKey]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
         {/* Mica effect overlay */}
         <div 
           className="absolute inset-0 pointer-events-none"
