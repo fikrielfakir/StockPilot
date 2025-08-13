@@ -1,8 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { WindowsCard, WindowsCardContent } from "@/components/WindowsCard";
-import { WindowsButton } from "@/components/WindowsButton";
 import { Link } from "wouter";
-import { Package, AlertTriangle, ShoppingCart, TrendingUp, Truck, Plus, FileText, Brain, Activity } from "lucide-react";
+import { 
+  Package, 
+  AlertTriangle, 
+  ShoppingCart, 
+  TrendingUp, 
+  Truck, 
+  Plus, 
+  FileText, 
+  Brain, 
+  Activity,
+  Clock,
+  Euro,
+  BarChart3,
+  PieChart,
+  LineChart,
+  Zap
+} from "lucide-react";
 import InteractiveChart from "@/components/InteractiveChart";
 import PredictiveAnalytics from "@/components/PredictiveAnalytics";
 
@@ -24,15 +38,15 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <WindowsCard key={i} className="animate-pulse" hoverable={false}>
-              <WindowsCardContent className="p-6">
-                <div className="h-20 bg-gray-200 rounded"></div>
-              </WindowsCardContent>
-            </WindowsCard>
-          ))}
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
+        <div className="max-w-7xl mx-auto p-6 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="fluent-card animate-pulse">
+                <div className="h-32 bg-gray-200 rounded-xl"></div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -46,306 +60,215 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-6" data-testid="dashboard">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-windows-gray-dark mb-2">Tableau de Bord</h1>
-        <p className="text-windows-gray">Vue d'ensemble de votre système de gestion de stock</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        <WindowsCard className="cursor-pointer" data-testid="card-total-articles">
-          <WindowsCardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-windows-gray">Total Articles</p>
-                <p className="text-3xl font-semibold text-windows-gray-dark">{stats?.totalArticles || 0}</p>
-                <p className="text-xs text-windows-green mt-2 flex items-center">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  <span>Articles référencés</span>
-                </p>
-              </div>
-              <div className="w-14 h-14 bg-blue-50 rounded-sm flex items-center justify-center">
-                <Package className="w-7 h-7 text-windows-blue" />
-              </div>
-            </div>
-          </WindowsCardContent>
-        </WindowsCard>
-
-        <WindowsCard className="cursor-pointer" data-testid="card-low-stock">
-          <WindowsCardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-windows-gray">Stock Bas</p>
-                <p className="text-3xl font-semibold text-windows-red">{stats?.lowStock || 0}</p>
-                <p className="text-xs text-windows-red mt-2 flex items-center">
-                  <AlertTriangle className="w-3 h-3 mr-1" />
-                  <span>Attention requise</span>
-                </p>
-              </div>
-              <div className="w-14 h-14 bg-red-50 rounded-sm flex items-center justify-center">
-                <AlertTriangle className="w-7 h-7 text-windows-red" />
-              </div>
-            </div>
-          </WindowsCardContent>
-        </WindowsCard>
-
-        <WindowsCard className="cursor-pointer" data-testid="card-pending-requests">
-          <WindowsCardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-windows-gray">Demandes en Cours</p>
-                <p className="text-3xl font-semibold text-windows-gray-dark">{stats?.pendingRequests || 0}</p>
-                <p className="text-xs text-windows-amber mt-2 flex items-center">
-                  <ShoppingCart className="w-3 h-3 mr-1" />
-                  <span>En attente</span>
-                </p>
-              </div>
-              <div className="w-14 h-14 bg-amber-50 rounded-sm flex items-center justify-center">
-                <ShoppingCart className="w-7 h-7 text-windows-amber" />
-              </div>
-            </div>
-          </WindowsCardContent>
-        </WindowsCard>
-
-        <WindowsCard className="cursor-pointer" data-testid="card-stock-value">
-          <WindowsCardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-windows-gray">Valeur Stock</p>
-                <p className="text-3xl font-semibold text-windows-gray-dark">
-                  {formatCurrency(stats?.stockValue || 0)}
-                </p>
-                <p className="text-xs text-windows-green mt-2 flex items-center">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  <span>Valeur totale</span>
-                </p>
-              </div>
-              <div className="w-14 h-14 bg-green-50 rounded-sm flex items-center justify-center">
-                <TrendingUp className="w-7 h-7 text-windows-green" />
-              </div>
-            </div>
-          </WindowsCardContent>
-        </WindowsCard>
-      </div>
-
-      {/* Enhanced Analytics Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-        {/* Stock Level Chart */}
-        <InteractiveChart
-          data={[
-            { month: 'Jan', stock: (stats?.totalArticles || 0) * 0.8, value: (stats?.stockValue || 0) * 0.7 },
-            { month: 'Fév', stock: (stats?.totalArticles || 0) * 0.9, value: (stats?.stockValue || 0) * 0.8 },
-            { month: 'Mar', stock: (stats?.totalArticles || 0) * 0.7, value: (stats?.stockValue || 0) * 0.9 },
-            { month: 'Avr', stock: stats?.totalArticles || 0, value: stats?.stockValue || 0 },
-          ]}
-          title="Évolution du Stock"
-          description="Stock et valeur sur 4 mois"
-          xAxisKey="month"
-          yAxisKey="stock"
-          defaultType="area"
-          colors={['#3B82F6', '#10B981']}
-          showAnalytics={true}
-        />
-
-        {/* Purchase Requests Trend */}
-        <InteractiveChart
-          data={[
-            { status: 'En Attente', count: stats?.pendingRequests || 0 },
-            { status: 'Approuvé', count: Math.floor((stats?.pendingRequests || 0) * 1.5) },
-            { status: 'Commandé', count: Math.floor((stats?.pendingRequests || 0) * 0.8) },
-            { status: 'Refusé', count: Math.floor((stats?.pendingRequests || 0) * 0.3) },
-          ]}
-          title="Statut des Demandes"
-          description="Répartition des demandes d'achat"
-          xAxisKey="status"
-          yAxisKey="count"
-          defaultType="bar"
-          colors={['#F59E0B', '#10B981', '#3B82F6', '#EF4444']}
-          showAnalytics={true}
-        />
-      </div>
-
-      {/* AI Insights Section */}
-      <div className="mb-6">
-        <WindowsCard>
-          <div className="p-6 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-50 rounded-sm flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Insights IA</h3>
-                  <p className="text-sm text-gray-600">Recommandations intelligentes du système</p>
-                </div>
-              </div>
-              <Link href="/analytics">
-                <WindowsButton variant="outline" size="sm">
-                  <Activity className="w-4 h-4 mr-2" />
-                  Vue Complète
-                </WindowsButton>
-              </Link>
-            </div>
-          </div>
-          <WindowsCardContent className="p-6">
-            <PredictiveAnalytics showGlobalInsights={true} />
-          </WindowsCardContent>
-        </WindowsCard>
-      </div>
-
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        {/* Quick Actions */}
-        <div>
-          <WindowsCard hoverable={false}>
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-windows-gray-dark">Actions Rapides</h3>
-            </div>
-            <WindowsCardContent className="p-6 space-y-3">
-              <Link href="/articles">
-                <WindowsButton 
-                  variant="outline" 
-                  className="w-full justify-start p-4 h-auto"
-                  data-testid="quick-action-articles"
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-blue-50 rounded-sm flex items-center justify-center mr-3">
-                      <Plus className="w-4 h-4 text-windows-blue" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-windows-gray-dark">Ajouter Article</p>
-                      <p className="text-xs text-windows-gray">Nouveau produit</p>
-                    </div>
-                  </div>
-                </WindowsButton>
-              </Link>
-
-              <Link href="/purchase-requests">
-                <WindowsButton 
-                  variant="outline" 
-                  className="w-full justify-start p-4 h-auto"
-                  data-testid="quick-action-purchase-request"
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-amber-50 rounded-sm flex items-center justify-center mr-3">
-                      <ShoppingCart className="w-4 h-4 text-windows-amber" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-windows-gray-dark">Demande Achat</p>
-                      <p className="text-xs text-windows-gray">Nouvelle demande</p>
-                    </div>
-                  </div>
-                </WindowsButton>
-              </Link>
-
-              <Link href="/reception">
-                <WindowsButton 
-                  variant="outline" 
-                  className="w-full justify-start p-4 h-auto"
-                  data-testid="quick-action-reception"
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-green-50 rounded-sm flex items-center justify-center mr-3">
-                      <Truck className="w-4 h-4 text-windows-green" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-windows-gray-dark">Réception</p>
-                      <p className="text-xs text-windows-gray">Enregistrer livraison</p>
-                    </div>
-                  </div>
-                </WindowsButton>
-              </Link>
-
-              <Link href="/reports">
-                <WindowsButton 
-                  variant="outline" 
-                  className="w-full justify-start p-4 h-auto"
-                  data-testid="quick-action-export"
-                >
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-purple-50 rounded-sm flex items-center justify-center mr-3">
-                      <FileText className="w-4 h-4 text-windows-purple" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-windows-gray-dark">Rapports</p>
-                      <p className="text-xs text-windows-gray">Export données</p>
-                    </div>
-                  </div>
-                </WindowsButton>
-              </Link>
-            </WindowsCardContent>
-          </WindowsCard>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30" data-testid="dashboard">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="fluent-title text-4xl mb-3">Tableau de Bord</h1>
+          <p className="fluent-caption text-lg">Vue d'ensemble de votre système de gestion de stock</p>
         </div>
 
-        {/* Stock Alerts */}
-        <div className="xl:col-span-2">
-          <WindowsCard hoverable={false}>
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-windows-gray-dark">Alertes Stock Bas</h3>
-                {stats?.lowStock && stats.lowStock > 0 && (
-                  <span className="bg-windows-red text-white text-xs px-2 py-1 rounded-sm">
-                    {stats.lowStock} articles
-                  </span>
-                )}
+        {/* Stats Cards - Fluent Design Style */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* Total Articles Card */}
+          <div className="fluent-card group overflow-hidden" data-testid="card-total-articles">
+            <div className="stat-card-blue h-32 p-6 text-white relative">
+              <div className="absolute top-4 right-4">
+                <Package className="w-8 h-8 text-white/90" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-white/90 font-medium text-sm uppercase tracking-wide">Total Articles</p>
+                <p className="text-3xl font-bold">{stats?.totalArticles || 0}</p>
+                <div className="flex items-center text-white/80 text-xs">
+                  <ShoppingCart className="w-3 h-3 mr-1" />
+                  <span>Articles référencés</span>
+                </div>
               </div>
             </div>
-            <WindowsCardContent className="p-0">
-              {(lowStockArticles as any[]).length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-windows-gray-light">
-                      <tr>
-                        <th className="text-left p-4 text-sm font-medium text-windows-gray-dark">Code Article</th>
-                        <th className="text-left p-4 text-sm font-medium text-windows-gray-dark">Désignation</th>
-                        <th className="text-left p-4 text-sm font-medium text-windows-gray-dark">Stock Actuel</th>
-                        <th className="text-left p-4 text-sm font-medium text-windows-gray-dark">Seuil Min.</th>
-                        <th className="text-left p-4 text-sm font-medium text-windows-gray-dark">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(lowStockArticles as any[]).slice(0, 5).map((article: any) => (
-                        <tr key={article.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <td className="p-4 text-sm font-medium text-windows-gray-dark">{article.codeArticle}</td>
-                          <td className="p-4 text-sm text-windows-gray-dark">{article.designation}</td>
-                          <td className="p-4 text-sm">
-                            <span className="text-windows-red font-medium">{article.quantiteStock}</span>
-                          </td>
-                          <td className="p-4 text-sm text-windows-gray">{article.seuilMin}</td>
-                          <td className="p-4">
-                            <Link href={`/purchase-requests?article=${article.id}`}>
-                              <WindowsButton size="sm" variant="primary" className="text-xs">
-                                Commander
-                              </WindowsButton>
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  {(lowStockArticles as any[]).length > 5 && (
-                    <div className="p-4 border-t border-gray-100 text-center">
-                      <Link href="/stock-status?filter=critical">
-                        <WindowsButton variant="outline" size="sm">
-                          Voir tous les articles en stock bas ({(lowStockArticles as any[]).length})
-                        </WindowsButton>
-                      </Link>
-                    </div>
-                  )}
+          </div>
+
+          {/* Stock Bas Card */}
+          <div className="fluent-card group overflow-hidden" data-testid="card-low-stock">
+            <div className="stat-card-yellow h-32 p-6 text-white relative">
+              <div className="absolute top-4 right-4">
+                <AlertTriangle className="w-8 h-8 text-white/90" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-white/90 font-medium text-sm uppercase tracking-wide">Stock Bas</p>
+                <p className="text-3xl font-bold">{stats?.lowStock || 0}</p>
+                <div className="flex items-center text-white/80 text-xs">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  <span>Attention requise</span>
                 </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-green-50 rounded-sm mx-auto mb-4 flex items-center justify-center">
-                    <TrendingUp className="w-8 h-8 text-windows-green" />
-                  </div>
-                  <h4 className="text-lg font-medium text-windows-gray-dark mb-2">Aucune alerte stock</h4>
-                  <p className="text-windows-gray">Tous vos articles sont en stock suffisant</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Demandes en Cours Card */}
+          <div className="fluent-card group overflow-hidden" data-testid="card-pending-requests">
+            <div className="stat-card-orange h-32 p-6 text-white relative">
+              <div className="absolute top-4 right-4">
+                <Clock className="w-8 h-8 text-white/90" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-white/90 font-medium text-sm uppercase tracking-wide">Demandes en Cours</p>
+                <p className="text-3xl font-bold">{stats?.pendingRequests || 0}</p>
+                <div className="flex items-center text-white/80 text-xs">
+                  <Clock className="w-3 h-3 mr-1" />
+                  <span>En attente</span>
                 </div>
-              )}
-            </WindowsCardContent>
-          </WindowsCard>
+              </div>
+            </div>
+          </div>
+
+          {/* Valeur Stock Card */}
+          <div className="fluent-card group overflow-hidden" data-testid="card-stock-value">
+            <div className="stat-card-green h-32 p-6 text-white relative">
+              <div className="absolute top-4 right-4">
+                <Euro className="w-8 h-8 text-white/90" />
+              </div>
+              <div className="space-y-2">
+                <p className="text-white/90 font-medium text-sm uppercase tracking-wide">Valeur Stock</p>
+                <p className="text-2xl font-bold">
+                  {formatCurrency(stats?.stockValue || 0)}
+                </p>
+                <div className="flex items-center text-white/80 text-xs">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  <span>Valeur totale</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts and Analytics Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Stock Evolution Chart */}
+          <div className="xl:col-span-2">
+            <div className="fluent-card p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="fluent-subtitle text-xl mb-1">Évolution du Stock</h2>
+                  <p className="fluent-caption">Tendances des 30 derniers jours</p>
+                </div>
+                <BarChart3 className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="h-64">
+                <InteractiveChart />
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="space-y-6">
+            <div className="fluent-card p-6">
+              <h2 className="fluent-subtitle text-lg mb-4 flex items-center">
+                <Zap className="w-5 h-5 mr-2 text-blue-500" />
+                Actions Rapides
+              </h2>
+              <div className="space-y-3">
+                <Link to="/articles" className="block">
+                  <button className="fluent-button w-full justify-start">
+                    <Plus className="w-4 h-4" />
+                    Nouvel Article
+                  </button>
+                </Link>
+                <Link to="/purchase-requests" className="block">
+                  <button className="fluent-button w-full justify-start bg-gradient-to-r from-green-500 to-green-400">
+                    <ShoppingCart className="w-4 h-4" />
+                    Nouvelle Demande
+                  </button>
+                </Link>
+                <Link to="/reception" className="block">
+                  <button className="fluent-button w-full justify-start bg-gradient-to-r from-purple-500 to-purple-400">
+                    <Truck className="w-4 h-4" />
+                    Réceptionner
+                  </button>
+                </Link>
+                <Link to="/reports" className="block">
+                  <button className="fluent-button w-full justify-start bg-gradient-to-r from-orange-500 to-orange-400">
+                    <FileText className="w-4 h-4" />
+                    Voir Rapports
+                  </button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Demand Status Chart */}
+            <div className="fluent-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="fluent-subtitle text-lg">État des Demandes</h2>
+                <PieChart className="w-5 h-5 text-gray-400" />
+              </div>
+              <div className="h-48">
+                <InteractiveChart />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Predictive Analytics Section */}
+        <div className="fluent-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="fluent-subtitle text-xl mb-1 flex items-center">
+                <Brain className="w-6 h-6 mr-2 text-indigo-500" />
+                Analyses Prédictives
+              </h2>
+              <p className="fluent-caption">Insights intelligents pour optimiser votre stock</p>
+            </div>
+            <LineChart className="w-5 h-5 text-gray-400" />
+          </div>
+          <PredictiveAnalytics />
+        </div>
+
+        {/* Low Stock Alert Section */}
+        {lowStockArticles.length > 0 && (
+          <div className="fluent-card p-6 border-l-4 border-yellow-500">
+            <div className="flex items-start">
+              <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 mr-3 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="fluent-subtitle text-lg text-yellow-800 mb-2">
+                  Alertes Stock Bas
+                </h3>
+                <p className="fluent-caption text-yellow-700 mb-4">
+                  {lowStockArticles.length} articles nécessitent une attention immédiate
+                </p>
+                <Link to="/stock-status">
+                  <button className="fluent-button bg-gradient-to-r from-yellow-500 to-yellow-400">
+                    <AlertTriangle className="w-4 h-4" />
+                    Voir Détails
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Performance Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="fluent-card p-6 text-center">
+            <Activity className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+            <h3 className="fluent-subtitle text-lg mb-2">Activité Aujourd'hui</h3>
+            <p className="text-2xl font-bold text-blue-600">
+              {(stats?.pendingRequests || 0) + (stats?.lowStock || 0)}
+            </p>
+            <p className="fluent-caption">Actions requises</p>
+          </div>
+
+          <div className="fluent-card p-6 text-center">
+            <TrendingUp className="w-8 h-8 text-green-500 mx-auto mb-3" />
+            <h3 className="fluent-subtitle text-lg mb-2">Croissance Stock</h3>
+            <p className="text-2xl font-bold text-green-600">+12%</p>
+            <p className="fluent-caption">Ce mois</p>
+          </div>
+
+          <div className="fluent-card p-6 text-center">
+            <Package className="w-8 h-8 text-purple-500 mx-auto mb-3" />
+            <h3 className="fluent-subtitle text-lg mb-2">Efficacité</h3>
+            <p className="text-2xl font-bold text-purple-600">94%</p>
+            <p className="fluent-caption">Taux de service</p>
+          </div>
         </div>
       </div>
     </div>
