@@ -41,7 +41,6 @@ const navigationItems = [
   { id: "suppliers", path: "/suppliers", icon: Building, label: "Fournisseurs" },
   { id: "requestors", path: "/requestors", icon: Users, label: "Demandeurs" },
   { id: "reports", path: "/reports", icon: FileText, label: "Rapports" },
-  { id: "settings", path: "/settings", icon: Settings, label: "Paramètres" },
 ];
 
 export default function TopNavigation() {
@@ -99,7 +98,7 @@ export default function TopNavigation() {
             variant="ghost" 
             size="sm"
             className="p-2 hover:bg-gray-100 rounded-lg"
-            onClick={() => setShowSettings(true)}
+            onClick={() => window.location.href = '/settings'}
           >
             <Settings className="w-5 h-5 text-gray-600" />
           </Button>
@@ -125,7 +124,7 @@ export default function TopNavigation() {
                 <User className="w-4 h-4 mr-2" />
                 Profil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setShowSettings(true)}>
+              <DropdownMenuItem onClick={() => window.location.href = '/settings'}>
                 <Settings className="w-4 h-4 mr-2" />
                 Paramètres
               </DropdownMenuItem>
