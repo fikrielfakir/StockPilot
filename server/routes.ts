@@ -330,9 +330,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/purchase-requests/:id", async (req, res) => {
     try {
-      const request = await storage.updatePurchaseRequest(req.params.id, req.body);
-      res.json(request);
+      // For status updates, allow simple updates without full validation
+      if (req.body.statut && Object.keys(req.body).length === 1) {
+        const request = await storage.updatePurchaseRequest(req.params.id, req.body);
+        res.json(request);
+      } else {
+        // For full updates, validate the data
+        const validatedData = insertPurchaseRequestSchema.partial().parse(req.body);
+        const request = await storage.updatePurchaseRequest(req.params.id, validatedData);
+        res.json(request);
+      }
     } catch (error) {
+      console.error("Purchase request update error:", error);
       res.status(400).json({ message: "Erreur lors de la mise à jour", error });
     }
   });
@@ -431,7 +440,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const outbound = await storage.createOutbound(validatedData);
       res.status(201).json(outbound);
     } catch (error) {
+      console.error("Outbound creation error:", error);
       res.status(400).json({ message: "Données invalides", error });
+    }
+  });
+
+  app.put("/api/outbounds/:id", async (req, res) => {
+    try {
+      const validatedData = insertOutboundSchema.partial().parse(req.body);
+      const outbound = await storage.updateOutbound(req.params.id, validatedData);
+      res.json(outbound);
+    } catch (error) {
+      console.error("Outbound update error:", error);
+      res.status(400).json({ message: "Erreur lors de la mise à jour", error });
+    }
+  });
+
+  app.delete("/api/outbounds/:id", async (req, res) => {
+    try {
+      await storage.deleteOutbound(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la suppression" });
     }
   });
 

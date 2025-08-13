@@ -24,15 +24,15 @@ export default function PurchaseRequests() {
     queryKey: ["/api/purchase-requests"],
   });
 
-  const { data: articles = [] } = useQuery({
+  const { data: articles = [] } = useQuery<any[]>({
     queryKey: ["/api/articles"],
   });
 
-  const { data: requestors = [] } = useQuery({
+  const { data: requestors = [] } = useQuery<any[]>({
     queryKey: ["/api/requestors"],
   });
 
-  const { data: suppliers = [] } = useQuery({
+  const { data: suppliers = [] } = useQuery<any[]>({
     queryKey: ["/api/suppliers"],
   });
 

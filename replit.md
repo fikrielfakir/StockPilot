@@ -62,6 +62,10 @@ Preferred communication style: Simple, everyday language.
 - **Chart Data APIs**: Implemented 4 new API endpoints for chart data (stock evolution, purchase status, category distribution, recent movements)
 - **Empty State Handling**: Added proper empty states for charts when no data is available
 - **Database Storage**: Implemented full DatabaseStorage class with optimized queries using Drizzle ORM
+- **Reception System Optimization**: Implemented automatic conversion from purchase requests to receptions with editable quantity and price fields
+- **Outbound System Enhancement**: Added stock optimization with real-time stock calculations, insufficient stock warnings, and stock-after-outbound display
+- **Purchase Request Status Updates**: Fixed API validation issues for smooth status transitions
+- **Enhanced Status Visualization**: Improved status badge colors with proper dark mode support
 - All components use TypeScript for type safety
 - Implemented responsive design with Tailwind CSS
 - Added comprehensive error handling and loading states
