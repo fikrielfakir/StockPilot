@@ -57,6 +57,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/articles/low-stock", async (req, res) => {
     try {
       const lowStockArticles = await storage.getLowStockArticles();
+      if (!lowStockArticles || lowStockArticles.length === 0) {
+        return res.json([]);
+      }
       res.json(lowStockArticles);
     } catch (error) {
       res.status(500).json({ message: "Erreur lors de la récupération des articles en stock bas" });

@@ -65,7 +65,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Total Articles</p>
-                <p className="text-3xl font-bold text-gray-900">147</p>
+                <p className="text-3xl font-bold text-gray-900">{stats?.totalArticles || 0}</p>
                 <p className="text-sm text-blue-600 mt-1">Articles référencés</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -78,7 +78,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Stock Bas</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
+                <p className="text-3xl font-bold text-gray-900">{stats?.lowStock || 0}</p>
                 <p className="text-sm text-red-600 mt-1">Attention requise</p>
               </div>
               <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -91,8 +91,8 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Demandes en Cours</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
-                <p className="text-sm text-yellow-600 mt-1">0 en attente</p>
+                <p className="text-3xl font-bold text-gray-900">{stats?.pendingRequests || 0}</p>
+                <p className="text-sm text-yellow-600 mt-1">{stats?.pendingRequests || 0} en attente</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <ShoppingCart className="w-6 h-6 text-yellow-600" />
@@ -103,9 +103,9 @@ export default function Dashboard() {
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Valeur Totale</p>
-                <p className="text-3xl font-bold text-gray-900">2 541,00 €</p>
-                <p className="text-sm text-green-600 mt-1">Valeur totale</p>
+                <p className="text-sm text-gray-600 mb-1">Valeur Stock</p>
+                <p className="text-3xl font-bold text-gray-900">{formatCurrency(stats?.stockValue || 0)}</p>
+                <p className="text-sm text-green-600 mt-1">Inventaire total</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-green-600" />

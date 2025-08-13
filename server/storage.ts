@@ -5,9 +5,12 @@ import {
   type PurchaseRequest, type InsertPurchaseRequest,
   type Reception, type InsertReception,
   type Outbound, type InsertOutbound,
-  type StockMovement
+  type StockMovement,
+  articles, suppliers, requestors, purchaseRequests, receptions, outbounds, stockMovements
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { eq, lte, count, sum, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Articles
@@ -382,4 +385,331 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database Storage implementation
+export class DatabaseStorage implements IStorage {
+  // Articles
+  async getArticles(): Promise<Article[]> {
+    return await db.select().from(articles);
+  }
+
+  async getArticle(id: string): Promise<Article | undefined> {
+    const [article] = await db.select().from(articles).where(eq(articles.id, id));
+    return article || undefined;
+  }
+
+  async createArticle(article: InsertArticle): Promise<Article> {
+    const id = randomUUID();
+    const [newArticle] = await db
+      .insert(articles)
+      .values({
+        ...article,
+        id,
+        stockActuel: article.stockInitial,
+      })
+      .returning();
+    return newArticle;
+  }
+
+  async updateArticle(id: string, article: Partial<Article>): Promise<Article> {
+    const [updated] = await db
+      .update(articles)
+      .set(article)
+      .where(eq(articles.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Article not found");
+    }
+    return updated;
+  }
+
+  async deleteArticle(id: string): Promise<void> {
+    await db.delete(articles).where(eq(articles.id, id));
+  }
+
+  async getLowStockArticles(): Promise<Article[]> {
+    return await db
+      .select()
+      .from(articles)
+      .where(lte(articles.stockActuel, articles.seuilMinimum));
+  }
+
+  // Suppliers
+  async getSuppliers(): Promise<Supplier[]> {
+    return await db.select().from(suppliers);
+  }
+
+  async getSupplier(id: string): Promise<Supplier | undefined> {
+    const [supplier] = await db.select().from(suppliers).where(eq(suppliers.id, id));
+    return supplier || undefined;
+  }
+
+  async createSupplier(supplier: InsertSupplier): Promise<Supplier> {
+    const id = randomUUID();
+    const [newSupplier] = await db
+      .insert(suppliers)
+      .values({ ...supplier, id })
+      .returning();
+    return newSupplier;
+  }
+
+  async updateSupplier(id: string, supplier: Partial<Supplier>): Promise<Supplier> {
+    const [updated] = await db
+      .update(suppliers)
+      .set(supplier)
+      .where(eq(suppliers.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Supplier not found");
+    }
+    return updated;
+  }
+
+  async deleteSupplier(id: string): Promise<void> {
+    await db.delete(suppliers).where(eq(suppliers.id, id));
+  }
+
+  // Requestors
+  async getRequestors(): Promise<Requestor[]> {
+    return await db.select().from(requestors);
+  }
+
+  async getRequestor(id: string): Promise<Requestor | undefined> {
+    const [requestor] = await db.select().from(requestors).where(eq(requestors.id, id));
+    return requestor || undefined;
+  }
+
+  async createRequestor(requestor: InsertRequestor): Promise<Requestor> {
+    const id = randomUUID();
+    const [newRequestor] = await db
+      .insert(requestors)
+      .values({ ...requestor, id })
+      .returning();
+    return newRequestor;
+  }
+
+  async updateRequestor(id: string, requestor: Partial<Requestor>): Promise<Requestor> {
+    const [updated] = await db
+      .update(requestors)
+      .set(requestor)
+      .where(eq(requestors.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Requestor not found");
+    }
+    return updated;
+  }
+
+  async deleteRequestor(id: string): Promise<void> {
+    await db.delete(requestors).where(eq(requestors.id, id));
+  }
+
+  // Purchase Requests
+  async getPurchaseRequests(): Promise<PurchaseRequest[]> {
+    return await db.select().from(purchaseRequests);
+  }
+
+  async getPurchaseRequest(id: string): Promise<PurchaseRequest | undefined> {
+    const [request] = await db.select().from(purchaseRequests).where(eq(purchaseRequests.id, id));
+    return request || undefined;
+  }
+
+  async createPurchaseRequest(request: InsertPurchaseRequest): Promise<PurchaseRequest> {
+    const id = randomUUID();
+    const [newRequest] = await db
+      .insert(purchaseRequests)
+      .values({ ...request, id })
+      .returning();
+    return newRequest;
+  }
+
+  async updatePurchaseRequest(id: string, request: Partial<PurchaseRequest>): Promise<PurchaseRequest> {
+    const [updated] = await db
+      .update(purchaseRequests)
+      .set(request)
+      .where(eq(purchaseRequests.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Purchase request not found");
+    }
+    return updated;
+  }
+
+  async deletePurchaseRequest(id: string): Promise<void> {
+    await db.delete(purchaseRequests).where(eq(purchaseRequests.id, id));
+  }
+
+  // Receptions
+  async getReceptions(): Promise<Reception[]> {
+    return await db.select().from(receptions);
+  }
+
+  async getReception(id: string): Promise<Reception | undefined> {
+    const [reception] = await db.select().from(receptions).where(eq(receptions.id, id));
+    return reception || undefined;
+  }
+
+  async createReception(reception: InsertReception): Promise<Reception> {
+    const id = randomUUID();
+    const [newReception] = await db
+      .insert(receptions)
+      .values({ ...reception, id })
+      .returning();
+
+    // Update article stock and create movement
+    const article = await this.getArticle(reception.articleId);
+    if (article) {
+      const newStock = article.stockActuel + reception.quantiteRecue;
+      await this.updateArticle(reception.articleId, { stockActuel: newStock });
+      
+      await this.createStockMovement({
+        id: randomUUID(),
+        articleId: reception.articleId,
+        type: "entree",
+        quantite: reception.quantiteRecue,
+        quantiteAvant: article.stockActuel,
+        quantiteApres: newStock,
+        reference: id,
+        dateMovement: new Date(),
+        description: `Réception - NBL: ${reception.numeroBonLivraison || 'N/A'}`,
+      });
+    }
+
+    return newReception;
+  }
+
+  async updateReception(id: string, reception: Partial<Reception>): Promise<Reception> {
+    const [updated] = await db
+      .update(receptions)
+      .set(reception)
+      .where(eq(receptions.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Reception not found");
+    }
+    return updated;
+  }
+
+  async deleteReception(id: string): Promise<void> {
+    await db.delete(receptions).where(eq(receptions.id, id));
+  }
+
+  // Outbounds
+  async getOutbounds(): Promise<Outbound[]> {
+    return await db.select().from(outbounds);
+  }
+
+  async getOutbound(id: string): Promise<Outbound | undefined> {
+    const [outbound] = await db.select().from(outbounds).where(eq(outbounds.id, id));
+    return outbound || undefined;
+  }
+
+  async createOutbound(outbound: InsertOutbound): Promise<Outbound> {
+    const id = randomUUID();
+
+    // Check stock availability
+    const article = await this.getArticle(outbound.articleId);
+    if (!article || article.stockActuel < outbound.quantiteSortie) {
+      throw new Error("Stock insuffisant");
+    }
+
+    const [newOutbound] = await db
+      .insert(outbounds)
+      .values({ ...outbound, id })
+      .returning();
+
+    // Update article stock and create movement
+    const newStock = article.stockActuel - outbound.quantiteSortie;
+    await this.updateArticle(outbound.articleId, { stockActuel: newStock });
+    
+    await this.createStockMovement({
+      id: randomUUID(),
+      articleId: outbound.articleId,
+      type: "sortie",
+      quantite: outbound.quantiteSortie,
+      quantiteAvant: article.stockActuel,
+      quantiteApres: newStock,
+      reference: id,
+      dateMovement: new Date(),
+      description: `Sortie - ${outbound.motifSortie}`,
+    });
+
+    return newOutbound;
+  }
+
+  async updateOutbound(id: string, outbound: Partial<Outbound>): Promise<Outbound> {
+    const [updated] = await db
+      .update(outbounds)
+      .set(outbound)
+      .where(eq(outbounds.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Outbound not found");
+    }
+    return updated;
+  }
+
+  async deleteOutbound(id: string): Promise<void> {
+    await db.delete(outbounds).where(eq(outbounds.id, id));
+  }
+
+  // Stock Movements
+  async getStockMovements(articleId?: string): Promise<StockMovement[]> {
+    if (articleId) {
+      return await db
+        .select()
+        .from(stockMovements)
+        .where(eq(stockMovements.articleId, articleId));
+    }
+    return await db.select().from(stockMovements);
+  }
+
+  async createStockMovement(movement: Omit<StockMovement, 'id'>): Promise<StockMovement> {
+    const id = randomUUID();
+    const [newMovement] = await db
+      .insert(stockMovements)
+      .values({ ...movement, id })
+      .returning();
+    return newMovement;
+  }
+
+  // Dashboard stats
+  async getDashboardStats(): Promise<{
+    totalArticles: number;
+    lowStock: number;
+    pendingRequests: number;
+    stockValue: number;
+  }> {
+    // Get total articles count
+    const [totalArticlesResult] = await db
+      .select({ count: count() })
+      .from(articles);
+    
+    // Get low stock articles count
+    const [lowStockResult] = await db
+      .select({ count: count() })
+      .from(articles)
+      .where(lte(articles.stockActuel, articles.seuilMinimum));
+    
+    // Get pending requests count
+    const [pendingRequestsResult] = await db
+      .select({ count: count() })
+      .from(purchaseRequests)
+      .where(eq(purchaseRequests.statut, "en_attente"));
+    
+    // Calculate stock value
+    const [stockValueResult] = await db
+      .select({ 
+        value: sql<number>`SUM(CAST(${articles.prixUnitaire} AS DECIMAL) * ${articles.stockActuel})`.mapWith(Number)
+      })
+      .from(articles);
+
+    return {
+      totalArticles: totalArticlesResult.count,
+      lowStock: lowStockResult.count,
+      pendingRequests: pendingRequestsResult.count,
+      stockValue: stockValueResult.value || 0,
+    };
+  }
+}
+
+export const storage = new DatabaseStorage();
