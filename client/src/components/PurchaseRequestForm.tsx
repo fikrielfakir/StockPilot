@@ -11,6 +11,7 @@ import { insertPurchaseRequestSchema, type PurchaseRequest, type InsertPurchaseR
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import SearchableSelect from "./SearchableSelect";
 
 interface PurchaseRequestFormProps {
   request?: PurchaseRequest | null;
@@ -87,10 +88,10 @@ export default function PurchaseRequestForm({ request, onClose }: PurchaseReques
   });
 
   const onSubmit = (data: InsertPurchaseRequest) => {
-    // Convert "none" back to null for supplierId
+    // Convert "none" back to null for supplierId and ensure proper date format
     const processedData = {
       ...data,
-      supplierId: data.supplierId === "none" ? null : data.supplierId
+      supplierId: data.supplierId === "none" || data.supplierId === "" ? null : data.supplierId
     };
     
     if (isEditing) {
@@ -120,20 +121,18 @@ export default function PurchaseRequestForm({ request, onClose }: PurchaseReques
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Demandeur *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-requestor">
-                          <SelectValue placeholder="Sélectionner un demandeur" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {requestors.map((requestor: any) => (
-                          <SelectItem key={requestor.id} value={requestor.id}>
-                            {requestor.nom} {requestor.prenom} - {requestor.departement}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      options={requestors.map((requestor: any) => ({
+                        value: requestor.id,
+                        label: `${requestor.nom} ${requestor.prenom} - ${requestor.departement}`,
+                        searchText: `${requestor.nom} ${requestor.prenom} ${requestor.departement}`
+                      }))}
+                      placeholder="Sélectionner un demandeur"
+                      searchPlaceholder="Rechercher un demandeur..."
+                      testId="select-requestor"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -144,20 +143,18 @@ export default function PurchaseRequestForm({ request, onClose }: PurchaseReques
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Article *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-article">
-                          <SelectValue placeholder="Sélectionner un article" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {articles.map((article: any) => (
-                          <SelectItem key={article.id} value={article.id}>
-                            {article.codeArticle} - {article.designation}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SearchableSelect
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      options={articles.map((article: any) => ({
+                        value: article.id,
+                        label: `${article.codeArticle} - ${article.designation}`,
+                        searchText: `${article.codeArticle} ${article.designation} ${article.categorie}`
+                      }))}
+                      placeholder="Sélectionner un article"
+                      searchPlaceholder="Rechercher un article..."
+                      testId="select-article"
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

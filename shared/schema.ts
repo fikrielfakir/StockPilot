@@ -120,7 +120,8 @@ export const insertPurchaseRequestSchema = createInsertSchema(purchaseRequests).
   createdAt: true,
   dateInitiation: true,
 }).extend({
-  supplierId: z.string().nullable().optional(),
+  supplierId: z.string().optional().nullable(),
+  dateDemande: z.date().optional(),
 });
 
 export const insertReceptionSchema = createInsertSchema(receptions).omit({
