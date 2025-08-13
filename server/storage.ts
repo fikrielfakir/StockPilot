@@ -126,8 +126,9 @@ export class MemStorage implements IStorage {
     const newArticle: Article = {
       ...article,
       id,
-      stockActuel: article.stockInitial,
+      stockActuel: article.stockInitial || 0,
       createdAt: new Date(),
+      prixUnitaire: article.prixUnitaire?.toString() || null,
     };
     this.articles.set(id, newArticle);
     return newArticle;
@@ -168,6 +169,12 @@ export class MemStorage implements IStorage {
       ...supplier,
       id,
       createdAt: new Date(),
+      contact: supplier.contact ?? null,
+      telephone: supplier.telephone ?? null,
+      email: supplier.email ?? null,
+      adresse: supplier.adresse ?? null,
+      conditionsPaiement: supplier.conditionsPaiement ?? null,
+      delaiLivraison: supplier.delaiLivraison ?? null,
     };
     this.suppliers.set(id, newSupplier);
     return newSupplier;
@@ -202,6 +209,9 @@ export class MemStorage implements IStorage {
       ...requestor,
       id,
       createdAt: new Date(),
+      poste: requestor.poste ?? null,
+      email: requestor.email ?? null,
+      telephone: requestor.telephone ?? null,
     };
     this.requestors.set(id, newRequestor);
     return newRequestor;
@@ -237,6 +247,9 @@ export class MemStorage implements IStorage {
       id,
       dateInitiation: new Date(),
       createdAt: new Date(),
+      observations: request.observations ?? null,
+      statut: request.statut ?? "en_attente",
+      supplierId: request.supplierId ?? null,
     };
     this.purchaseRequests.set(id, newRequest);
     return newRequest;
@@ -271,6 +284,9 @@ export class MemStorage implements IStorage {
       ...reception,
       id,
       createdAt: new Date(),
+      prixUnitaire: reception.prixUnitaire?.toString() || null,
+      observations: reception.observations ?? null,
+      numeroBonLivraison: reception.numeroBonLivraison ?? null,
     };
     this.receptions.set(id, newReception);
 
@@ -281,7 +297,6 @@ export class MemStorage implements IStorage {
       await this.updateArticle(reception.articleId, { stockActuel: newStock });
       
       await this.createStockMovement({
-        id: randomUUID(),
         articleId: reception.articleId,
         type: "entree",
         quantite: reception.quantiteRecue,
@@ -325,6 +340,7 @@ export class MemStorage implements IStorage {
       ...outbound,
       id,
       createdAt: new Date(),
+      observations: outbound.observations ?? null,
     };
 
     // Check stock availability
@@ -340,7 +356,6 @@ export class MemStorage implements IStorage {
     await this.updateArticle(outbound.articleId, { stockActuel: newStock });
     
     await this.createStockMovement({
-      id: randomUUID(),
       articleId: outbound.articleId,
       type: "sortie",
       quantite: outbound.quantiteSortie,
@@ -505,6 +520,7 @@ export class DatabaseStorage implements IStorage {
         ...article,
         id,
         stockActuel: article.stockInitial,
+        prixUnitaire: article.prixUnitaire?.toString() || null,
       })
       .returning();
     return newArticle;
@@ -652,7 +668,11 @@ export class DatabaseStorage implements IStorage {
     const id = randomUUID();
     const [newReception] = await db
       .insert(receptions)
-      .values({ ...reception, id })
+      .values({ 
+        ...reception, 
+        id,
+        prixUnitaire: reception.prixUnitaire?.toString() || null
+      })
       .returning();
 
     // Update article stock and create movement
@@ -662,7 +682,6 @@ export class DatabaseStorage implements IStorage {
       await this.updateArticle(reception.articleId, { stockActuel: newStock });
       
       await this.createStockMovement({
-        id: randomUUID(),
         articleId: reception.articleId,
         type: "entree",
         quantite: reception.quantiteRecue,
@@ -722,7 +741,6 @@ export class DatabaseStorage implements IStorage {
     await this.updateArticle(outbound.articleId, { stockActuel: newStock });
     
     await this.createStockMovement({
-      id: randomUUID(),
       articleId: outbound.articleId,
       type: "sortie",
       quantite: outbound.quantiteSortie,
