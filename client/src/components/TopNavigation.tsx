@@ -57,12 +57,12 @@ export default function TopNavigation() {
   return (
     <div className="windows-nav bg-white border-b border-gray-200 shadow-sm">
       {/* Title Bar */}
-      <div className="h-8 bg-windows-title-bar flex items-center justify-between px-4">
+      <div className="h-8 bg-windows-title-bar flex items-center justify-between px-4" style={{ minHeight: '32px', position: 'relative', zIndex: 10 }}>
         <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 bg-windows-blue rounded-sm flex items-center justify-center">
+          <div className="w-4 h-4 bg-windows-blue rounded-sm flex items-center justify-center shadow-sm">
             <Package className="w-2.5 h-2.5 text-white" />
           </div>
-          <span className="text-xs font-medium text-gray-700">StockCéramique - Gestion de Stock</span>
+          <span className="text-xs font-medium text-gray-700 select-none">StockCéramique - Gestion de Stock</span>
         </div>
         <div className="flex items-center space-x-1">
           <button className="windows-title-button hover:bg-gray-200">
