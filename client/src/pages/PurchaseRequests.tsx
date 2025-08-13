@@ -10,6 +10,7 @@ import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { generatePurchaseRequestPDF } from "@/lib/pdfUtils";
+import { ConvertToReceptionDialog } from "@/components/ConvertToReceptionDialog";
 import type { PurchaseRequest } from "@shared/schema";
 
 export default function PurchaseRequests() {
@@ -260,6 +261,11 @@ export default function PurchaseRequests() {
                       <td className="p-4 text-sm text-ms-gray">{getSupplierName(request.supplierId)}</td>
                       <td className="p-4">
                         <div className="flex space-x-2">
+                          {/* Convert to Reception Button - Only show for approved requests */}
+                          {request.statut === "approuve" && (
+                            <ConvertToReceptionDialog purchaseRequest={request} />
+                          )}
+                          
                           <Select onValueChange={(value) => handleStatusChange(request.id, value)}>
                             <SelectTrigger className="w-32">
                               <SelectValue placeholder="Statut" />

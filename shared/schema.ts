@@ -139,6 +139,15 @@ export const insertOutboundSchema = createInsertSchema(outbounds).omit({
   dateSortie: z.string().transform((str) => new Date(str)),
 });
 
+// Schema for converting purchase request to reception
+export const convertToReceptionSchema = z.object({
+  quantiteRecue: z.number().positive().optional(),
+  prixUnitaire: z.coerce.number().nullable().optional(),
+  numeroBonLivraison: z.string().optional(),
+  observations: z.string().optional(),
+  dateReception: z.string().optional(),
+});
+
 // Types
 export type Article = typeof articles.$inferSelect;
 export type InsertArticle = z.infer<typeof insertArticleSchema>;
@@ -159,3 +168,5 @@ export type Outbound = typeof outbounds.$inferSelect;
 export type InsertOutbound = z.infer<typeof insertOutboundSchema>;
 
 export type StockMovement = typeof stockMovements.$inferSelect;
+
+export type ConvertToReception = z.infer<typeof convertToReceptionSchema>;

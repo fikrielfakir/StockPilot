@@ -41,6 +41,7 @@ export interface IStorage {
   createPurchaseRequest(request: InsertPurchaseRequest): Promise<PurchaseRequest>;
   updatePurchaseRequest(id: string, request: Partial<PurchaseRequest>): Promise<PurchaseRequest>;
   deletePurchaseRequest(id: string): Promise<void>;
+  getPurchaseRequestsReadyForReception(): Promise<PurchaseRequest[]>;
 
   // Receptions
   getReceptions(): Promise<Reception[]>;
@@ -129,6 +130,10 @@ export class MemStorage implements IStorage {
       stockActuel: article.stockInitial || 0,
       createdAt: new Date(),
       prixUnitaire: article.prixUnitaire?.toString() || null,
+      marque: article.marque ?? null,
+      reference: article.reference ?? null,
+      fournisseurId: article.fournisseurId ?? null,
+      seuilMinimum: article.seuilMinimum ?? null,
     };
     this.articles.set(id, newArticle);
     return newArticle;
@@ -267,6 +272,12 @@ export class MemStorage implements IStorage {
 
   async deletePurchaseRequest(id: string): Promise<void> {
     this.purchaseRequests.delete(id);
+  }
+
+  async getPurchaseRequestsReadyForReception(): Promise<PurchaseRequest[]> {
+    return Array.from(this.purchaseRequests.values()).filter(
+      request => request.statut === "approuve"
+    );
   }
 
   // Receptions
@@ -652,6 +663,13 @@ export class DatabaseStorage implements IStorage {
 
   async deletePurchaseRequest(id: string): Promise<void> {
     await db.delete(purchaseRequests).where(eq(purchaseRequests.id, id));
+  }
+
+  async getPurchaseRequestsReadyForReception(): Promise<PurchaseRequest[]> {
+    return await db
+      .select()
+      .from(purchaseRequests)
+      .where(eq(purchaseRequests.statut, "approuve"));
   }
 
   // Receptions

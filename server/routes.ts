@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertArticleSchema, insertSupplierSchema, insertRequestorSchema, insertPurchaseRequestSchema, insertReceptionSchema, insertOutboundSchema } from "@shared/schema";
+import { insertArticleSchema, insertSupplierSchema, insertRequestorSchema, insertPurchaseRequestSchema, insertReceptionSchema, insertOutboundSchema, convertToReceptionSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Articles routes
@@ -346,6 +346,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get approved purchase requests ready for reception
+  app.get("/api/purchase-requests/ready-for-reception", async (req, res) => {
+    try {
+      const requests = await storage.getPurchaseRequestsReadyForReception();
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des demandes prêtes pour réception" });
+    }
+  });
+
   // Receptions routes
   app.get("/api/receptions", async (req, res) => {
     try {
@@ -353,6 +363,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(receptions);
     } catch (error) {
       res.status(500).json({ message: "Erreur lors de la récupération des réceptions" });
+    }
+  });
+
+  // Convert purchase request to reception
+  app.post("/api/purchase-requests/:id/convert-to-reception", async (req, res) => {
+    try {
+      const purchaseRequestId = req.params.id;
+      const validatedConversion = convertToReceptionSchema.parse(req.body);
+      const { quantiteRecue, prixUnitaire, numeroBonLivraison, observations, dateReception } = validatedConversion;
+      
+      // Get the purchase request
+      const purchaseRequest = await storage.getPurchaseRequest(purchaseRequestId);
+      if (!purchaseRequest) {
+        return res.status(404).json({ message: "Demande d'achat non trouvée" });
+      }
+
+      // Create reception from purchase request
+      const receptionData = {
+        articleId: purchaseRequest.articleId,
+        supplierId: purchaseRequest.supplierId || "",
+        quantiteRecue: quantiteRecue || purchaseRequest.quantiteDemandee,
+        prixUnitaire: prixUnitaire || null,
+        numeroBonLivraison: numeroBonLivraison || null,
+        observations: observations || `Réception pour demande d'achat ${purchaseRequestId}`,
+        dateReception: dateReception || new Date().toISOString(),
+      };
+
+      const validatedData = insertReceptionSchema.parse(receptionData);
+      const reception = await storage.createReception(validatedData);
+
+      // Update purchase request status to 'commande'
+      await storage.updatePurchaseRequest(purchaseRequestId, { statut: "commande" });
+
+      res.status(201).json({
+        reception,
+        purchaseRequest: await storage.getPurchaseRequest(purchaseRequestId)
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Erreur lors de la conversion", error });
     }
   });
 
