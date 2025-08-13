@@ -30,11 +30,11 @@ export default function AdvancedSearch({
 }: AdvancedSearchProps) {
   const [filters, setFilters] = useState<SearchFilters>({
     query: "",
-    category: "",
-    stockLevel: "",
-    priceRange: "",
-    supplier: "",
-    status: ""
+    category: "all",
+    stockLevel: "all",
+    priceRange: "all",
+    supplier: "all",
+    status: "all"
   });
 
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -86,26 +86,26 @@ export default function AdvancedSearch({
   const clearFilters = () => {
     setFilters({
       query: "",
-      category: "",
-      stockLevel: "",
-      priceRange: "",
-      supplier: "",
-      status: ""
+      category: "all",
+      stockLevel: "all",
+      priceRange: "all",
+      supplier: "all",
+      status: "all"
     });
   };
 
   const getActiveFiltersCount = () => {
-    return Object.values(filters).filter(value => value !== "").length;
+    return Object.values(filters).filter(value => value !== "" && value !== "all").length;
   };
 
   const getFilterBadges = () => {
     const badges: Array<{ key: keyof SearchFilters; label: string; value: string }> = [];
     
-    if (filters.category) badges.push({ key: 'category', label: 'Catégorie', value: filters.category });
-    if (filters.stockLevel) badges.push({ key: 'stockLevel', label: 'Stock', value: filters.stockLevel });
-    if (filters.priceRange) badges.push({ key: 'priceRange', label: 'Prix', value: filters.priceRange });
-    if (filters.supplier) badges.push({ key: 'supplier', label: 'Fournisseur', value: suppliers.find(s => s.id === filters.supplier)?.nom || filters.supplier });
-    if (filters.status) badges.push({ key: 'status', label: 'Statut', value: filters.status });
+    if (filters.category && filters.category !== "all") badges.push({ key: 'category', label: 'Catégorie', value: filters.category });
+    if (filters.stockLevel && filters.stockLevel !== "all") badges.push({ key: 'stockLevel', label: 'Stock', value: filters.stockLevel });
+    if (filters.priceRange && filters.priceRange !== "all") badges.push({ key: 'priceRange', label: 'Prix', value: filters.priceRange });
+    if (filters.supplier && filters.supplier !== "all") badges.push({ key: 'supplier', label: 'Fournisseur', value: suppliers.find(s => s.id === filters.supplier)?.nom || filters.supplier });
+    if (filters.status && filters.status !== "all") badges.push({ key: 'status', label: 'Statut', value: filters.status });
 
     return badges;
   };
@@ -183,7 +183,7 @@ export default function AdvancedSearch({
                   <span className="text-xs">{badge.label}: {badge.value}</span>
                   <X
                     className="w-3 h-3 cursor-pointer hover:text-red-600"
-                    onClick={() => handleFilterChange(badge.key, "")}
+                    onClick={() => handleFilterChange(badge.key, "all")}
                   />
                 </Badge>
               ))}
@@ -200,7 +200,7 @@ export default function AdvancedSearch({
                     <SelectValue placeholder="Toutes catégories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toutes catégories</SelectItem>
+                    <SelectItem value="all">Toutes catégories</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category} value={category}>
                         {category}
@@ -217,7 +217,7 @@ export default function AdvancedSearch({
                     <SelectValue placeholder="Tous niveaux" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous niveaux</SelectItem>
+                    <SelectItem value="all">Tous niveaux</SelectItem>
                     <SelectItem value="critical">
                       <div className="flex items-center space-x-2">
                         <AlertTriangle className="w-4 h-4 text-red-500" />
@@ -248,7 +248,7 @@ export default function AdvancedSearch({
                     <SelectValue placeholder="Tous prix" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous prix</SelectItem>
+                    <SelectItem value="all">Tous prix</SelectItem>
                     <SelectItem value="0-10">0€ - 10€</SelectItem>
                     <SelectItem value="10-50">10€ - 50€</SelectItem>
                     <SelectItem value="50-100">50€ - 100€</SelectItem>
@@ -265,7 +265,7 @@ export default function AdvancedSearch({
                     <SelectValue placeholder="Tous fournisseurs" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous fournisseurs</SelectItem>
+                    <SelectItem value="all">Tous fournisseurs</SelectItem>
                     {suppliers.map((supplier) => (
                       <SelectItem key={supplier.id} value={supplier.id}>
                         {supplier.nom}
@@ -282,7 +282,7 @@ export default function AdvancedSearch({
                     <SelectValue placeholder="Tous statuts" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous statuts</SelectItem>
+                    <SelectItem value="all">Tous statuts</SelectItem>
                     <SelectItem value="active">Actif</SelectItem>
                     <SelectItem value="discontinued">Discontinué</SelectItem>
                     <SelectItem value="new">Nouveau</SelectItem>
