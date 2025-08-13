@@ -23,6 +23,22 @@ export default function Dashboard() {
     queryKey: ["/api/articles/low-stock"],
   });
 
+  const { data: stockEvolution = [] } = useQuery({
+    queryKey: ["/api/dashboard/stock-evolution"],
+  });
+
+  const { data: purchaseStatus = [] } = useQuery({
+    queryKey: ["/api/dashboard/purchase-status"],
+  });
+
+  const { data: categoryDistribution = [] } = useQuery({
+    queryKey: ["/api/dashboard/category-distribution"],
+  });
+
+  const { data: recentMovements = [] } = useQuery({
+    queryKey: ["/api/dashboard/recent-movements"],
+  });
+
   if (isLoading) {
     return (
       <div>
@@ -131,17 +147,22 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-600">Depuis les 4 derniers mois</p>
               </div>
               <div className="h-64">
-                <SimpleChart
-                  data={[
-                    { month: 'Jan', stock: 3.0 },
-                    { month: 'Fév', stock: 1.8 },
-                    { month: 'Mar', stock: 2.5 },
-                    { month: 'Avr', stock: 2.2 },
-                  ]}
-                  type="line"
-                  xAxisKey="month"
-                  yAxisKey="stock"
-                />
+                {stockEvolution.length > 0 ? (
+                  <SimpleChart
+                    data={stockEvolution}
+                    type="line"
+                    xAxisKey="month"
+                    yAxisKey="stock"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <Package className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">Aucune donnée d'évolution disponible</p>
+                      <p className="text-xs text-gray-400 mt-1">Les données apparaîtront après vos premiers mouvements de stock</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -161,17 +182,22 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-600">Répartition des statuts d'achat</p>
               </div>
               <div className="h-64">
-                <SimpleChart
-                  data={[
-                    { status: 'En attente', count: 2.0 },
-                    { status: 'Approuvé', count: 5.0 },
-                    { status: 'Commandé', count: 3.0 },
-                    { status: 'Refusé', count: 1.0 },
-                  ]}
-                  type="bar"
-                  xAxisKey="status"
-                  yAxisKey="count"
-                />
+                {purchaseStatus.length > 0 ? (
+                  <SimpleChart
+                    data={purchaseStatus.map(item => ({ ...item, fill: item.color }))}
+                    type="bar"
+                    xAxisKey="status"
+                    yAxisKey="count"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <ShoppingCart className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">Aucune demande d'achat enregistrée</p>
+                      <p className="text-xs text-gray-400 mt-1">Les statistiques apparaîtront après création de demandes</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -189,23 +215,45 @@ export default function Dashboard() {
             </div>
             <div className="relative z-10 p-6">
               <div className="mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Prévision</h3>
-                <p className="text-sm text-gray-600">Demande prévue sur 12 mois</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Activité Récente</h3>
+                <p className="text-sm text-gray-600">Derniers mouvements de stock</p>
               </div>
               <div className="h-64">
-                <SimpleChart
-                  data={[
-                    { month: 'Jan', prediction: 6.0 },
-                    { month: 'Fév', prediction: 7.5 },
-                    { month: 'Mar', prediction: 8.0 },
-                    { month: 'Avr', prediction: 7.8 },
-                    { month: 'Mai', prediction: 8.2 },
-                    { month: 'Juin', prediction: 8.0 },
-                  ]}
-                  type="prediction"
-                  xAxisKey="month"
-                  yAxisKey="prediction"
-                />
+                {recentMovements.length > 0 ? (
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-gray-700 mb-3">Mouvements Récents</h4>
+                    {recentMovements.slice(0, 5).map((movement, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          {movement.type === 'Entrée' ? 
+                            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                              <TrendingUp className="w-4 h-4 text-green-600" />
+                            </div> :
+                            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                              <Package className="w-4 h-4 text-red-600" />
+                            </div>
+                          }
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{movement.type}</p>
+                            <p className="text-xs text-gray-500">{movement.article}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-gray-900">{movement.quantity}</p>
+                          <p className="text-xs text-gray-500">{movement.date}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <Activity className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p className="text-sm">Aucun mouvement récent</p>
+                      <p className="text-xs text-gray-400 mt-1">Les mouvements apparaîtront après vos premières transactions</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

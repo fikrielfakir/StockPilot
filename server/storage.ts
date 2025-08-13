@@ -67,6 +67,32 @@ export interface IStorage {
     pendingRequests: number;
     stockValue: number;
   }>;
+
+  // Chart data
+  getStockEvolutionData(): Promise<Array<{
+    month: string;
+    stock: number;
+    value: number;
+  }>>;
+
+  getPurchaseStatusData(): Promise<Array<{
+    status: string;
+    count: number;
+    color: string;
+  }>>;
+
+  getCategoryDistributionData(): Promise<Array<{
+    category: string;
+    count: number;
+    percentage: number;
+  }>>;
+
+  getRecentMovementsData(): Promise<Array<{
+    date: string;
+    type: string;
+    quantity: number;
+    article: string;
+  }>>;
 }
 
 export class MemStorage implements IStorage {
@@ -382,6 +408,80 @@ export class MemStorage implements IStorage {
       pendingRequests,
       stockValue,
     };
+  }
+
+  // Chart data methods for MemStorage
+  async getStockEvolutionData(): Promise<Array<{
+    month: string;
+    stock: number;
+    value: number;
+  }>> {
+    // Return empty data since there's no historical data yet
+    return [];
+  }
+
+  async getPurchaseStatusData(): Promise<Array<{
+    status: string;
+    count: number;
+    color: string;
+  }>> {
+    const requests = await this.getPurchaseRequests();
+    const statusCounts = requests.reduce((acc, req) => {
+      acc[req.statut] = (acc[req.statut] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const statusColors = {
+      'en_attente': '#f59e0b',
+      'approuve': '#10b981',
+      'refuse': '#ef4444',
+      'commande': '#3b82f6'
+    };
+
+    return Object.entries(statusCounts).map(([status, count]) => ({
+      status: status === 'en_attente' ? 'En Attente' : 
+              status === 'approuve' ? 'Approuvé' :
+              status === 'refuse' ? 'Refusé' : 'Commandé',
+      count,
+      color: statusColors[status as keyof typeof statusColors] || '#6b7280'
+    }));
+  }
+
+  async getCategoryDistributionData(): Promise<Array<{
+    category: string;
+    count: number;
+    percentage: number;
+  }>> {
+    const articles = await this.getArticles();
+    if (articles.length === 0) return [];
+
+    const categoryCounts = articles.reduce((acc, article) => {
+      acc[article.categorie] = (acc[article.categorie] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(categoryCounts).map(([category, count]) => ({
+      category,
+      count,
+      percentage: Math.round((count / articles.length) * 100)
+    }));
+  }
+
+  async getRecentMovementsData(): Promise<Array<{
+    date: string;
+    type: string;
+    quantity: number;
+    article: string;
+  }>> {
+    const movements = await this.getStockMovements();
+    return movements
+      .slice(-10) // Get last 10 movements
+      .map(movement => ({
+        date: movement.dateMovement.toLocaleDateString('fr-FR'),
+        type: movement.type === 'entree' ? 'Entrée' : 'Sortie',
+        quantity: movement.quantite,
+        article: movement.articleId.substring(0, 8) + '...'
+      }));
   }
 }
 
@@ -709,6 +809,93 @@ export class DatabaseStorage implements IStorage {
       pendingRequests: pendingRequestsResult.count,
       stockValue: stockValueResult.value || 0,
     };
+  }
+
+  // Chart data methods for DatabaseStorage
+  async getStockEvolutionData(): Promise<Array<{
+    month: string;
+    stock: number;
+    value: number;
+  }>> {
+    // For now, return empty array since we need historical data tracking
+    // In a real implementation, you would track stock levels over time
+    return [];
+  }
+
+  async getPurchaseStatusData(): Promise<Array<{
+    status: string;
+    count: number;
+    color: string;
+  }>> {
+    const results = await db
+      .select({
+        status: purchaseRequests.statut,
+        count: count()
+      })
+      .from(purchaseRequests)
+      .groupBy(purchaseRequests.statut);
+
+    const statusColors = {
+      'en_attente': '#f59e0b',
+      'approuve': '#10b981',
+      'refuse': '#ef4444',
+      'commande': '#3b82f6'
+    };
+
+    return results.map(result => ({
+      status: result.status === 'en_attente' ? 'En Attente' : 
+              result.status === 'approuve' ? 'Approuvé' :
+              result.status === 'refuse' ? 'Refusé' : 'Commandé',
+      count: result.count,
+      color: statusColors[result.status as keyof typeof statusColors] || '#6b7280'
+    }));
+  }
+
+  async getCategoryDistributionData(): Promise<Array<{
+    category: string;
+    count: number;
+    percentage: number;
+  }>> {
+    const results = await db
+      .select({
+        category: articles.categorie,
+        count: count()
+      })
+      .from(articles)
+      .groupBy(articles.categorie);
+
+    const total = results.reduce((sum, result) => sum + result.count, 0);
+    
+    return results.map(result => ({
+      category: result.category,
+      count: result.count,
+      percentage: total > 0 ? Math.round((result.count / total) * 100) : 0
+    }));
+  }
+
+  async getRecentMovementsData(): Promise<Array<{
+    date: string;
+    type: string;
+    quantity: number;
+    article: string;
+  }>> {
+    const movements = await db
+      .select({
+        dateMovement: stockMovements.dateMovement,
+        type: stockMovements.type,
+        quantite: stockMovements.quantite,
+        articleId: stockMovements.articleId
+      })
+      .from(stockMovements)
+      .orderBy(stockMovements.dateMovement)
+      .limit(10);
+
+    return movements.map(movement => ({
+      date: movement.dateMovement.toLocaleDateString('fr-FR'),
+      type: movement.type === 'entree' ? 'Entrée' : 'Sortie',
+      quantity: movement.quantite,
+      article: movement.articleId.substring(0, 8) + '...'
+    }));
   }
 }
 

@@ -407,6 +407,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chart data endpoints
+  app.get("/api/dashboard/stock-evolution", async (req, res) => {
+    try {
+      const data = await storage.getStockEvolutionData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération de l'évolution du stock" });
+    }
+  });
+
+  app.get("/api/dashboard/purchase-status", async (req, res) => {
+    try {
+      const data = await storage.getPurchaseStatusData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération du statut des achats" });
+    }
+  });
+
+  app.get("/api/dashboard/category-distribution", async (req, res) => {
+    try {
+      const data = await storage.getCategoryDistributionData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération de la distribution par catégorie" });
+    }
+  });
+
+  app.get("/api/dashboard/recent-movements", async (req, res) => {
+    try {
+      const data = await storage.getRecentMovementsData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des mouvements récents" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
