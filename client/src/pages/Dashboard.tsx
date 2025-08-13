@@ -5,6 +5,8 @@ import { Link } from "wouter";
 import { Package, AlertTriangle, ShoppingCart, TrendingUp, Truck, Plus, FileText, Brain, Activity } from "lucide-react";
 import SimpleChart from "@/components/SimpleChart";
 import PredictiveAnalytics from "@/components/PredictiveAnalytics";
+import TopNavBar from "@/components/TopNavBar";
+import SecondaryNavBar from "@/components/SecondaryNavBar";
 
 interface DashboardStats {
   totalArticles: number;
@@ -51,7 +53,13 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Top Navigation Bar */}
+      <TopNavBar />
+      
+      {/* Secondary Navigation Bar */}
+      <SecondaryNavBar />
+      
+      {/* Page Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 mb-6">
         <h1 className="text-2xl font-semibold text-gray-900 mb-1">Tableau de Bord</h1>
         <p className="text-sm text-gray-600">Vue d'ensemble de votre système de gestion de stock</p>
@@ -113,72 +121,99 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Charts Section */}
+        {/* Charts Section with Mica Effects */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-          {/* Stock Evolution Chart - Simple white card design */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Évolution du Stock</h3>
-              <p className="text-sm text-gray-600">Depuis les 4 derniers mois</p>
+          {/* Stock Evolution Chart - Mica Container */}
+          <div className="relative rounded-xl overflow-hidden mica-container">
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-lg border border-white/20" 
+                 style={{ 
+                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                   background: 'rgba(255, 255, 255, 0.9)',
+                   backdropFilter: 'blur(20px) saturate(180%)'
+                 }}>
             </div>
-            <div className="h-64">
-              <SimpleChart
-                data={[
-                  { month: 'Jan', stock: 3.0 },
-                  { month: 'Fév', stock: 1.8 },
-                  { month: 'Mar', stock: 2.5 },
-                  { month: 'Avr', stock: 2.2 },
-                ]}
-                type="line"
-                xAxisKey="month"
-                yAxisKey="stock"
-              />
+            <div className="relative z-10 p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Évolution du Stock</h3>
+                <p className="text-sm text-gray-600">Depuis les 4 derniers mois</p>
+              </div>
+              <div className="h-64">
+                <SimpleChart
+                  data={[
+                    { month: 'Jan', stock: 3.0 },
+                    { month: 'Fév', stock: 1.8 },
+                    { month: 'Mar', stock: 2.5 },
+                    { month: 'Avr', stock: 2.2 },
+                  ]}
+                  type="line"
+                  xAxisKey="month"
+                  yAxisKey="stock"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Purchase Status Bar Chart */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Statut des Demandes</h3>
-              <p className="text-sm text-gray-600">Répartition des statuts d'achat</p>
+          {/* Purchase Status Bar Chart - Mica Container */}
+          <div className="relative rounded-xl overflow-hidden mica-container">
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-lg border border-white/20" 
+                 style={{ 
+                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                   background: 'rgba(255, 255, 255, 0.9)',
+                   backdropFilter: 'blur(20px) saturate(180%)'
+                 }}>
             </div>
-            <div className="h-64">
-              <SimpleChart
-                data={[
-                  { status: 'En attente', count: 2.0 },
-                  { status: 'Approuvé', count: 5.0 },
-                  { status: 'Commandé', count: 3.0 },
-                  { status: 'Refusé', count: 1.0 },
-                ]}
-                type="bar"
-                xAxisKey="status"
-                yAxisKey="count"
-              />
+            <div className="relative z-10 p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Statut des Demandes</h3>
+                <p className="text-sm text-gray-600">Répartition des statuts d'achat</p>
+              </div>
+              <div className="h-64">
+                <SimpleChart
+                  data={[
+                    { status: 'En attente', count: 2.0 },
+                    { status: 'Approuvé', count: 5.0 },
+                    { status: 'Commandé', count: 3.0 },
+                    { status: 'Refusé', count: 1.0 },
+                  ]}
+                  type="bar"
+                  xAxisKey="status"
+                  yAxisKey="count"
+                />
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Prediction Chart */}
+        {/* Prediction Chart - Full Width Mica Container */}
         <div className="mb-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">Prévision</h3>
-              <p className="text-sm text-gray-600">Demande prévue sur 12 mois</p>
+          <div className="relative rounded-xl overflow-hidden mica-container">
+            <div className="absolute inset-0 bg-white/90 backdrop-blur-lg border border-white/20" 
+                 style={{ 
+                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                   background: 'rgba(255, 255, 255, 0.9)',
+                   backdropFilter: 'blur(20px) saturate(180%)'
+                 }}>
             </div>
-            <div className="h-64">
-              <SimpleChart
-                data={[
-                  { month: 'Jan', prediction: 6.0 },
-                  { month: 'Fév', prediction: 7.5 },
-                  { month: 'Mar', prediction: 8.0 },
-                  { month: 'Avr', prediction: 7.8 },
-                  { month: 'Mai', prediction: 8.2 },
-                  { month: 'Juin', prediction: 8.0 },
-                ]}
-                type="prediction"
-                xAxisKey="month"
-                yAxisKey="prediction"
-              />
+            <div className="relative z-10 p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">Prévision</h3>
+                <p className="text-sm text-gray-600">Demande prévue sur 12 mois</p>
+              </div>
+              <div className="h-64">
+                <SimpleChart
+                  data={[
+                    { month: 'Jan', prediction: 6.0 },
+                    { month: 'Fév', prediction: 7.5 },
+                    { month: 'Mar', prediction: 8.0 },
+                    { month: 'Avr', prediction: 7.8 },
+                    { month: 'Mai', prediction: 8.2 },
+                    { month: 'Juin', prediction: 8.0 },
+                  ]}
+                  type="prediction"
+                  xAxisKey="month"
+                  yAxisKey="prediction"
+                />
+              </div>
             </div>
           </div>
         </div>
