@@ -7,6 +7,8 @@ import OutboundForm from "@/components/OutboundForm";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ExportButton } from "@/components/ExportButton";
+import { DocumentGenerator } from "@/components/DocumentGenerator";
 import type { Outbound } from "@shared/schema";
 
 export default function OutboundPage() {

@@ -9,6 +9,7 @@ import BarcodeGenerator from "@/components/BarcodeGenerator";
 import BulkImportExport from "@/components/BulkImportExport";
 import AdvancedSearch from "@/components/AdvancedSearch";
 import InteractiveChart from "@/components/InteractiveChart";
+import { ExportButton } from "@/components/ExportButton";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -270,6 +271,22 @@ export default function Articles() {
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-gray-900">Liste des Articles</h3>
             <div className="flex space-x-3">
+              <ExportButton
+                data={filteredArticles}
+                filename="articles_stock"
+                title="Articles de Stock"
+                columns={[
+                  { key: 'codeArticle', label: 'Code Article' },
+                  { key: 'designation', label: 'Désignation' },
+                  { key: 'categorie', label: 'Catégorie' },
+                  { key: 'marque', label: 'Marque' },
+                  { key: 'stockActuel', label: 'Stock Actuel', format: (val) => val?.toString() || '0' },
+                  { key: 'seuilMinimum', label: 'Seuil Minimum', format: (val) => val?.toString() || 'N/A' },
+                  { key: 'prixUnitaire', label: 'Prix Unitaire (€)', format: (val) => val ? `${val} €` : 'N/A' },
+                  { key: 'unite', label: 'Unité' },
+                ]}
+                className="mr-2"
+              />
               <Button 
                 onClick={() => setShowImportExport(true)}
                 variant="outline"

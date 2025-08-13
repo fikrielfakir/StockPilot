@@ -6,7 +6,11 @@ import {
   type Reception, type InsertReception,
   type Outbound, type InsertOutbound,
   type StockMovement,
-  articles, suppliers, requestors, purchaseRequests, receptions, outbounds, stockMovements
+  type Category, type InsertCategory,
+  type Marque, type InsertMarque,
+  type Departement, type InsertDepartement,
+  type Poste, type InsertPoste,
+  articles, suppliers, requestors, purchaseRequests, receptions, outbounds, stockMovements, categories, marques, departements, postes
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -94,6 +98,31 @@ export interface IStorage {
     quantity: number;
     article: string;
   }>>;
+
+  // New entities CRUD operations
+  getCategories(): Promise<Category[]>;
+  getCategory(id: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: string, category: Partial<Category>): Promise<Category>;
+  deleteCategory(id: string): Promise<void>;
+
+  getMarques(): Promise<Marque[]>;
+  getMarque(id: string): Promise<Marque | undefined>;
+  createMarque(marque: InsertMarque): Promise<Marque>;
+  updateMarque(id: string, marque: Partial<Marque>): Promise<Marque>;
+  deleteMarque(id: string): Promise<void>;
+
+  getDepartements(): Promise<Departement[]>;
+  getDepartement(id: string): Promise<Departement | undefined>;
+  createDepartement(departement: InsertDepartement): Promise<Departement>;
+  updateDepartement(id: string, departement: Partial<Departement>): Promise<Departement>;
+  deleteDepartement(id: string): Promise<void>;
+
+  getPostes(): Promise<Poste[]>;
+  getPoste(id: string): Promise<Poste | undefined>;
+  createPoste(poste: InsertPoste): Promise<Poste>;
+  updatePoste(id: string, poste: Partial<Poste>): Promise<Poste>;
+  deletePoste(id: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -127,6 +156,7 @@ export class MemStorage implements IStorage {
     const newArticle: Article = {
       ...article,
       id,
+      stockInitial: article.stockInitial || 0,
       stockActuel: article.stockInitial || 0,
       createdAt: new Date(),
       prixUnitaire: article.prixUnitaire?.toString() || null,
@@ -509,6 +539,120 @@ export class MemStorage implements IStorage {
         article: movement.articleId.substring(0, 8) + '...'
       }));
   }
+
+  // New entities - MemStorage implementation (simple maps)
+  private categories: Map<string, Category> = new Map();
+  private marques: Map<string, Marque> = new Map();
+  private departements: Map<string, Departement> = new Map();
+  private postes: Map<string, Poste> = new Map();
+
+  async getCategories(): Promise<Category[]> {
+    return Array.from(this.categories.values());
+  }
+
+  async getCategory(id: string): Promise<Category | undefined> {
+    return this.categories.get(id);
+  }
+
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const id = randomUUID();
+    const newCategory: Category = { ...category, id, description: category.description || null, createdAt: new Date() };
+    this.categories.set(id, newCategory);
+    return newCategory;
+  }
+
+  async updateCategory(id: string, category: Partial<Category>): Promise<Category> {
+    const existing = this.categories.get(id);
+    if (!existing) throw new Error("Category not found");
+    const updated = { ...existing, ...category };
+    this.categories.set(id, updated);
+    return updated;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    this.categories.delete(id);
+  }
+
+  async getMarques(): Promise<Marque[]> {
+    return Array.from(this.marques.values());
+  }
+
+  async getMarque(id: string): Promise<Marque | undefined> {
+    return this.marques.get(id);
+  }
+
+  async createMarque(marque: InsertMarque): Promise<Marque> {
+    const id = randomUUID();
+    const newMarque: Marque = { ...marque, id, description: marque.description || null, createdAt: new Date() };
+    this.marques.set(id, newMarque);
+    return newMarque;
+  }
+
+  async updateMarque(id: string, marque: Partial<Marque>): Promise<Marque> {
+    const existing = this.marques.get(id);
+    if (!existing) throw new Error("Marque not found");
+    const updated = { ...existing, ...marque };
+    this.marques.set(id, updated);
+    return updated;
+  }
+
+  async deleteMarque(id: string): Promise<void> {
+    this.marques.delete(id);
+  }
+
+  async getDepartements(): Promise<Departement[]> {
+    return Array.from(this.departements.values());
+  }
+
+  async getDepartement(id: string): Promise<Departement | undefined> {
+    return this.departements.get(id);
+  }
+
+  async createDepartement(departement: InsertDepartement): Promise<Departement> {
+    const id = randomUUID();
+    const newDepartement: Departement = { ...departement, id, description: departement.description || null, createdAt: new Date() };
+    this.departements.set(id, newDepartement);
+    return newDepartement;
+  }
+
+  async updateDepartement(id: string, departement: Partial<Departement>): Promise<Departement> {
+    const existing = this.departements.get(id);
+    if (!existing) throw new Error("Departement not found");
+    const updated = { ...existing, ...departement };
+    this.departements.set(id, updated);
+    return updated;
+  }
+
+  async deleteDepartement(id: string): Promise<void> {
+    this.departements.delete(id);
+  }
+
+  async getPostes(): Promise<Poste[]> {
+    return Array.from(this.postes.values());
+  }
+
+  async getPoste(id: string): Promise<Poste | undefined> {
+    return this.postes.get(id);
+  }
+
+  async createPoste(poste: InsertPoste): Promise<Poste> {
+    const id = randomUUID();
+    const newPoste: Poste = { ...poste, id, description: poste.description || null, departementId: poste.departementId || null, createdAt: new Date() };
+    this.postes.set(id, newPoste);
+    return newPoste;
+  }
+
+  async updatePoste(id: string, poste: Partial<Poste>): Promise<Poste> {
+    const existing = this.postes.get(id);
+    if (!existing) throw new Error("Poste not found");
+    const updated = { ...existing, ...poste };
+    this.postes.set(id, updated);
+    return updated;
+  }
+
+  async deletePoste(id: string): Promise<void> {
+    this.postes.delete(id);
+  }
 }
 
 // Database Storage implementation
@@ -530,7 +674,8 @@ export class DatabaseStorage implements IStorage {
       .values({
         ...article,
         id,
-        stockActuel: article.stockInitial,
+        stockInitial: article.stockInitial || 0,
+        stockActuel: article.stockInitial || 0,
         prixUnitaire: article.prixUnitaire?.toString() || null,
       })
       .returning();
@@ -932,6 +1077,143 @@ export class DatabaseStorage implements IStorage {
       quantity: movement.quantite,
       article: movement.articleId.substring(0, 8) + '...'
     }));
+  }
+
+  // New entities - DatabaseStorage implementation
+  async getCategories(): Promise<Category[]> {
+    return await db.select().from(categories);
+  }
+
+  async getCategory(id: string): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category || undefined;
+  }
+
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const id = randomUUID();
+    const [newCategory] = await db
+      .insert(categories)
+      .values({ ...category, id })
+      .returning();
+    return newCategory;
+  }
+
+  async updateCategory(id: string, category: Partial<Category>): Promise<Category> {
+    const [updated] = await db
+      .update(categories)
+      .set(category)
+      .where(eq(categories.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Category not found");
+    }
+    return updated;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    await db.delete(categories).where(eq(categories.id, id));
+  }
+
+  async getMarques(): Promise<Marque[]> {
+    return await db.select().from(marques);
+  }
+
+  async getMarque(id: string): Promise<Marque | undefined> {
+    const [marque] = await db.select().from(marques).where(eq(marques.id, id));
+    return marque || undefined;
+  }
+
+  async createMarque(marque: InsertMarque): Promise<Marque> {
+    const id = randomUUID();
+    const [newMarque] = await db
+      .insert(marques)
+      .values({ ...marque, id })
+      .returning();
+    return newMarque;
+  }
+
+  async updateMarque(id: string, marque: Partial<Marque>): Promise<Marque> {
+    const [updated] = await db
+      .update(marques)
+      .set(marque)
+      .where(eq(marques.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Marque not found");
+    }
+    return updated;
+  }
+
+  async deleteMarque(id: string): Promise<void> {
+    await db.delete(marques).where(eq(marques.id, id));
+  }
+
+  async getDepartements(): Promise<Departement[]> {
+    return await db.select().from(departements);
+  }
+
+  async getDepartement(id: string): Promise<Departement | undefined> {
+    const [departement] = await db.select().from(departements).where(eq(departements.id, id));
+    return departement || undefined;
+  }
+
+  async createDepartement(departement: InsertDepartement): Promise<Departement> {
+    const id = randomUUID();
+    const [newDepartement] = await db
+      .insert(departements)
+      .values({ ...departement, id })
+      .returning();
+    return newDepartement;
+  }
+
+  async updateDepartement(id: string, departement: Partial<Departement>): Promise<Departement> {
+    const [updated] = await db
+      .update(departements)
+      .set(departement)
+      .where(eq(departements.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Departement not found");
+    }
+    return updated;
+  }
+
+  async deleteDepartement(id: string): Promise<void> {
+    await db.delete(departements).where(eq(departements.id, id));
+  }
+
+  async getPostes(): Promise<Poste[]> {
+    return await db.select().from(postes);
+  }
+
+  async getPoste(id: string): Promise<Poste | undefined> {
+    const [poste] = await db.select().from(postes).where(eq(postes.id, id));
+    return poste || undefined;
+  }
+
+  async createPoste(poste: InsertPoste): Promise<Poste> {
+    const id = randomUUID();
+    const [newPoste] = await db
+      .insert(postes)
+      .values({ ...poste, id })
+      .returning();
+    return newPoste;
+  }
+
+  async updatePoste(id: string, poste: Partial<Poste>): Promise<Poste> {
+    const [updated] = await db
+      .update(postes)
+      .set(poste)
+      .where(eq(postes.id, id))
+      .returning();
+    if (!updated) {
+      throw new Error("Poste not found");
+    }
+    return updated;
+  }
+
+  async deletePoste(id: string): Promise<void> {
+    await db.delete(postes).where(eq(postes.id, id));
   }
 }
 

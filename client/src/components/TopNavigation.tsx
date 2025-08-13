@@ -41,6 +41,7 @@ const navigationItems = [
   { id: "suppliers", path: "/suppliers", icon: Building, label: "Fournisseurs" },
   { id: "requestors", path: "/requestors", icon: Users, label: "Demandeurs" },
   { id: "reports", path: "/reports", icon: FileText, label: "Rapports" },
+  { id: "settings", path: "/settings", icon: Settings, label: "Paramètres" },
 ];
 
 export default function TopNavigation() {

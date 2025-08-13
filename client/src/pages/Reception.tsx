@@ -7,6 +7,8 @@ import ReceptionForm from "@/components/ReceptionForm";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ExportButton } from "@/components/ExportButton";
+import { DocumentGenerator } from "@/components/DocumentGenerator";
 import type { Reception } from "@shared/schema";
 
 export default function ReceptionPage() {
@@ -104,14 +106,30 @@ export default function ReceptionPage() {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-ms-gray-dark">Réception de Marchandises</h3>
-            <Button 
-              onClick={() => setShowForm(true)}
-              className="btn-ms-blue flex items-center space-x-2"
-              data-testid="button-add-reception"
-            >
-              <i className="fas fa-plus"></i>
-              <span>Nouvelle Réception</span>
-            </Button>
+            <div className="flex space-x-3">
+              <ExportButton
+                data={filteredReceptions}
+                filename="receptions"
+                title="Réceptions de Marchandises"
+                columns={[
+                  { key: 'dateReception', label: 'Date Réception', format: (val) => new Date(val).toLocaleDateString('fr-FR') },
+                  { key: 'supplierId', label: 'Fournisseur', format: (val) => getSupplierName(val) },
+                  { key: 'articleId', label: 'Article', format: (val) => getArticleName(val) },
+                  { key: 'quantiteRecue', label: 'Quantité Reçue', format: (val) => val?.toString() || '0' },
+                  { key: 'prixUnitaire', label: 'Prix Unitaire (€)', format: (val) => val ? `${val} €` : 'N/A' },
+                  { key: 'numeroBonLivraison', label: 'N° Bon Livraison' },
+                ]}
+                className="mr-2"
+              />
+              <Button 
+                onClick={() => setShowForm(true)}
+                className="btn-ms-blue flex items-center space-x-2"
+                data-testid="button-add-reception"
+              >
+                <i className="fas fa-plus"></i>
+                <span>Nouvelle Réception</span>
+              </Button>
+            </div>
           </div>
         </div>
 

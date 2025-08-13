@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertArticleSchema, insertSupplierSchema, insertRequestorSchema, insertPurchaseRequestSchema, insertReceptionSchema, insertOutboundSchema, convertToReceptionSchema } from "@shared/schema";
+import { insertArticleSchema, insertSupplierSchema, insertRequestorSchema, insertPurchaseRequestSchema, insertReceptionSchema, insertOutboundSchema, convertToReceptionSchema, insertCategorySchema, insertMarqueSchema, insertDepartementSchema, insertPosteSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Articles routes
@@ -520,6 +520,293 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(data);
     } catch (error) {
       res.status(500).json({ message: "Erreur lors de la récupération des mouvements récents" });
+    }
+  });
+
+  // New entities routes - Categories, Marques, Departements, Postes
+  // Categories
+  app.get("/api/categories", async (req, res) => {
+    try {
+      const categories = await storage.getCategories();
+      res.json(categories);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des catégories" });
+    }
+  });
+
+  app.post("/api/categories", async (req, res) => {
+    try {
+      const validatedData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(validatedData);
+      res.status(201).json(category);
+    } catch (error) {
+      res.status(400).json({ message: "Données invalides", error });
+    }
+  });
+
+  app.put("/api/categories/:id", async (req, res) => {
+    try {
+      const category = await storage.updateCategory(req.params.id, req.body);
+      res.json(category);
+    } catch (error) {
+      res.status(400).json({ message: "Erreur lors de la mise à jour", error });
+    }
+  });
+
+  app.delete("/api/categories/:id", async (req, res) => {
+    try {
+      await storage.deleteCategory(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la suppression" });
+    }
+  });
+
+  // Marques
+  app.get("/api/marques", async (req, res) => {
+    try {
+      const marques = await storage.getMarques();
+      res.json(marques);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des marques" });
+    }
+  });
+
+  app.post("/api/marques", async (req, res) => {
+    try {
+      const validatedData = insertMarqueSchema.parse(req.body);
+      const marque = await storage.createMarque(validatedData);
+      res.status(201).json(marque);
+    } catch (error) {
+      res.status(400).json({ message: "Données invalides", error });
+    }
+  });
+
+  app.put("/api/marques/:id", async (req, res) => {
+    try {
+      const marque = await storage.updateMarque(req.params.id, req.body);
+      res.json(marque);
+    } catch (error) {
+      res.status(400).json({ message: "Erreur lors de la mise à jour", error });
+    }
+  });
+
+  app.delete("/api/marques/:id", async (req, res) => {
+    try {
+      await storage.deleteMarque(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la suppression" });
+    }
+  });
+
+  // Departements
+  app.get("/api/departements", async (req, res) => {
+    try {
+      const departements = await storage.getDepartements();
+      res.json(departements);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des départements" });
+    }
+  });
+
+  app.post("/api/departements", async (req, res) => {
+    try {
+      const validatedData = insertDepartementSchema.parse(req.body);
+      const departement = await storage.createDepartement(validatedData);
+      res.status(201).json(departement);
+    } catch (error) {
+      res.status(400).json({ message: "Données invalides", error });
+    }
+  });
+
+  app.put("/api/departements/:id", async (req, res) => {
+    try {
+      const departement = await storage.updateDepartement(req.params.id, req.body);
+      res.json(departement);
+    } catch (error) {
+      res.status(400).json({ message: "Erreur lors de la mise à jour", error });
+    }
+  });
+
+  app.delete("/api/departements/:id", async (req, res) => {
+    try {
+      await storage.deleteDepartement(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la suppression" });
+    }
+  });
+
+  // Postes
+  app.get("/api/postes", async (req, res) => {
+    try {
+      const postes = await storage.getPostes();
+      res.json(postes);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des postes" });
+    }
+  });
+
+  app.post("/api/postes", async (req, res) => {
+    try {
+      const validatedData = insertPosteSchema.parse(req.body);
+      const poste = await storage.createPoste(validatedData);
+      res.status(201).json(poste);
+    } catch (error) {
+      res.status(400).json({ message: "Données invalides", error });
+    }
+  });
+
+  app.put("/api/postes/:id", async (req, res) => {
+    try {
+      const poste = await storage.updatePoste(req.params.id, req.body);
+      res.json(poste);
+    } catch (error) {
+      res.status(400).json({ message: "Erreur lors de la mise à jour", error });
+    }
+  });
+
+  app.delete("/api/postes/:id", async (req, res) => {
+    try {
+      await storage.deletePoste(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la suppression" });
+    }
+  });
+
+  // Document generation endpoints
+  app.get("/api/purchase-requests/:id/bon-commande", async (req, res) => {
+    try {
+      const purchaseRequest = await storage.getPurchaseRequest(req.params.id);
+      if (!purchaseRequest) {
+        return res.status(404).json({ message: "Demande d'achat non trouvée" });
+      }
+      
+      const article = await storage.getArticle(purchaseRequest.articleId);
+      const requestor = await storage.getRequestor(purchaseRequest.requestorId);
+      const supplier = purchaseRequest.supplierId ? await storage.getSupplier(purchaseRequest.supplierId) : null;
+      
+      res.json({
+        document: "bon_commande",
+        purchaseRequest,
+        article,
+        requestor, 
+        supplier,
+        generatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la génération du bon de commande" });
+    }
+  });
+
+  app.get("/api/receptions/:id/bon-reception", async (req, res) => {
+    try {
+      const reception = await storage.getReception(req.params.id);
+      if (!reception) {
+        return res.status(404).json({ message: "Réception non trouvée" });
+      }
+      
+      const article = await storage.getArticle(reception.articleId);
+      const supplier = await storage.getSupplier(reception.supplierId);
+      
+      res.json({
+        document: "bon_reception",
+        reception,
+        article,
+        supplier,
+        generatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la génération du bon de réception" });
+    }
+  });
+
+  app.get("/api/outbounds/:id/bon-sortie", async (req, res) => {
+    try {
+      const outbound = await storage.getOutbound(req.params.id);
+      if (!outbound) {
+        return res.status(404).json({ message: "Sortie non trouvée" });
+      }
+      
+      const article = await storage.getArticle(outbound.articleId);
+      const requestor = await storage.getRequestor(outbound.requestorId);
+      
+      res.json({
+        document: "bon_sortie",
+        outbound,
+        article,
+        requestor,
+        generatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la génération du bon de sortie" });
+    }
+  });
+
+  // Enhanced export endpoints for all modules
+  app.get("/api/suppliers/export", async (req, res) => {
+    try {
+      const format = req.query.format as string;
+      const suppliers = await storage.getSuppliers();
+      
+      res.json({
+        data: suppliers,
+        format: format || 'json',
+        exportedAt: new Date().toISOString(),
+        totalRecords: suppliers.length
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de l'export des fournisseurs" });
+    }
+  });
+
+  app.get("/api/purchase-requests/export", async (req, res) => {
+    try {
+      const format = req.query.format as string;
+      const requests = await storage.getPurchaseRequests();
+      
+      res.json({
+        data: requests,
+        format: format || 'json',
+        exportedAt: new Date().toISOString(),
+        totalRecords: requests.length
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de l'export des demandes d'achat" });
+    }
+  });
+
+  app.get("/api/receptions/export", async (req, res) => {
+    try {
+      const format = req.query.format as string;
+      const receptions = await storage.getReceptions();
+      
+      res.json({
+        data: receptions,
+        format: format || 'json',
+        exportedAt: new Date().toISOString(),
+        totalRecords: receptions.length
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de l'export des réceptions" });
+    }
+  });
+
+  app.get("/api/outbounds/export", async (req, res) => {
+    try {
+      const format = req.query.format as string;
+      const outbounds = await storage.getOutbounds();
+      
+      res.json({
+        data: outbounds,
+        format: format || 'json',
+        exportedAt: new Date().toISOString(),
+        totalRecords: outbounds.length
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de l'export des sorties" });
     }
   });
 

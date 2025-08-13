@@ -103,6 +103,7 @@ export const insertArticleSchema = createInsertSchema(articles).omit({
   stockActuel: true,
 }).extend({
   prixUnitaire: z.coerce.number().nullable().optional(),
+  fournisseurId: z.coerce.string().nullable().optional(),
 });
 
 export const insertSupplierSchema = createInsertSchema(suppliers).omit({
@@ -170,3 +171,67 @@ export type InsertOutbound = z.infer<typeof insertOutboundSchema>;
 export type StockMovement = typeof stockMovements.$inferSelect;
 
 export type ConvertToReception = z.infer<typeof convertToReceptionSchema>;
+
+// New tables for categories, brands, departments, and positions
+export const categories = pgTable("categories", {
+  id: varchar("id").primaryKey(),
+  nom: text("nom").notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const marques = pgTable("marques", {
+  id: varchar("id").primaryKey(),
+  nom: text("nom").notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const departements = pgTable("departements", {
+  id: varchar("id").primaryKey(),
+  nom: text("nom").notNull().unique(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const postes = pgTable("postes", {
+  id: varchar("id").primaryKey(),
+  nom: text("nom").notNull().unique(),
+  departementId: varchar("departement_id"),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert schemas for new tables
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertMarqueSchema = createInsertSchema(marques).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertDepartementSchema = createInsertSchema(departements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertPosteSchema = createInsertSchema(postes).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for new tables
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+
+export type Marque = typeof marques.$inferSelect;
+export type InsertMarque = z.infer<typeof insertMarqueSchema>;
+
+export type Departement = typeof departements.$inferSelect;
+export type InsertDepartement = z.infer<typeof insertDepartementSchema>;
+
+export type Poste = typeof postes.$inferSelect;
+export type InsertPoste = z.infer<typeof insertPosteSchema>;

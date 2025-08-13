@@ -8,6 +8,7 @@ import BulkImportExport from "@/components/BulkImportExport";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ExportButton } from "@/components/ExportButton";
 import { Upload, Download, Plus, Edit, Trash2 } from "lucide-react";
 import type { Supplier } from "@shared/schema";
 
@@ -82,14 +83,31 @@ export default function Suppliers() {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-ms-gray-dark">Gestion des Fournisseurs</h3>
-            <Button 
-              onClick={() => setShowForm(true)}
-              className="btn-ms-blue flex items-center space-x-2"
-              data-testid="button-add-supplier"
-            >
-              <i className="fas fa-plus"></i>
-              <span>Nouveau Fournisseur</span>
-            </Button>
+            <div className="flex space-x-3">
+              <ExportButton
+                data={filteredSuppliers}
+                filename="fournisseurs"
+                title="Fournisseurs"
+                columns={[
+                  { key: 'nom', label: 'Nom' },
+                  { key: 'contact', label: 'Contact' },
+                  { key: 'telephone', label: 'Téléphone' },
+                  { key: 'email', label: 'Email' },
+                  { key: 'adresse', label: 'Adresse' },
+                  { key: 'delaiLivraison', label: 'Délai Livraison (jours)', format: (val) => val?.toString() || 'N/A' },
+                  { key: 'conditionsPaiement', label: 'Conditions Paiement' },
+                ]}
+                className="mr-2"
+              />
+              <Button 
+                onClick={() => setShowForm(true)}
+                className="btn-ms-blue flex items-center space-x-2"
+                data-testid="button-add-supplier"
+              >
+                <i className="fas fa-plus"></i>
+                <span>Nouveau Fournisseur</span>
+              </Button>
+            </div>
           </div>
         </div>
 

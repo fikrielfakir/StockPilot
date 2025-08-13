@@ -16,6 +16,7 @@ import Reception from "@/pages/Reception";
 import Outbound from "@/pages/Outbound";
 import Reports from "@/pages/Reports";
 import Analytics from "@/pages/Analytics";
+import Settings from "@/pages/Settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
         <Route path="/outbound" component={Outbound} />
         <Route path="/reports" component={Reports} />
         <Route path="/analytics" component={Analytics} />
+        <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

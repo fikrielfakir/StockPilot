@@ -11,6 +11,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { generatePurchaseRequestPDF } from "@/lib/pdfUtils";
 import { ConvertToReceptionDialog } from "@/components/ConvertToReceptionDialog";
+import { ExportButton } from "@/components/ExportButton";
+import { DocumentGenerator } from "@/components/DocumentGenerator";
 import type { PurchaseRequest } from "@shared/schema";
 
 export default function PurchaseRequests() {
@@ -176,14 +178,30 @@ export default function PurchaseRequests() {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-ms-gray-dark">Demandes d'Achat</h3>
-            <Button 
-              onClick={() => setShowForm(true)}
-              className="btn-ms-blue flex items-center space-x-2"
-              data-testid="button-add-request"
-            >
-              <i className="fas fa-plus"></i>
-              <span>Nouvelle Demande</span>
-            </Button>
+            <div className="flex space-x-3">
+              <ExportButton
+                data={filteredRequests}
+                filename="demandes_achat"
+                title="Demandes d'Achat"
+                columns={[
+                  { key: 'dateDemande', label: 'Date Demande', format: (val) => new Date(val).toLocaleDateString('fr-FR') },
+                  { key: 'articleId', label: 'Article', format: (val) => getArticleName(val) },
+                  { key: 'requestorId', label: 'Demandeur', format: (val) => getRequestorName(val) },
+                  { key: 'quantiteDemandee', label: 'Quantité', format: (val) => val?.toString() || '0' },
+                  { key: 'statut', label: 'Statut' },
+                  { key: 'observations', label: 'Observations' },
+                ]}
+                className="mr-2"
+              />
+              <Button 
+                onClick={() => setShowForm(true)}
+                className="btn-ms-blue flex items-center space-x-2"
+                data-testid="button-add-request"
+              >
+                <i className="fas fa-plus"></i>
+                <span>Nouvelle Demande</span>
+              </Button>
+            </div>
           </div>
         </div>
 
