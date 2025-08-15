@@ -87,6 +87,24 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Creating purchase request with data:', data);
+      console.log('Items to create:', items);
+      
+      // Validate items
+      if (items.length === 0) {
+        throw new Error('Au moins un article est requis');
+      }
+      
+      // Validate each item has required fields
+      for (const item of items) {
+        if (!item.articleId) {
+          throw new Error('Article requis pour tous les éléments');
+        }
+        if (!item.quantiteDemandee || item.quantiteDemandee < 1) {
+          throw new Error('Quantité doit être supérieure à 0');
+        }
+      }
+      
       // Create purchase request header
       const headerData = {
         requestorId: data.requestorId,
@@ -95,8 +113,10 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
         totalArticles: items.length,
       };
       
+      console.log('Sending header data:', headerData);
       const response = await apiRequest("POST", "/api/purchase-requests", headerData);
       const purchaseRequest = await response.json();
+      console.log('Created purchase request:', purchaseRequest);
       
       // Create purchase request items
       if (items.length > 0) {
@@ -109,12 +129,14 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
           observations: item.observations || null,
         }));
         
+        console.log('Creating items:', itemsData);
         for (const itemData of itemsData) {
-          await apiRequest("POST", "/api/purchase-request-items", itemData);
+          const itemResponse = await apiRequest("POST", "/api/purchase-request-items", itemData);
+          console.log('Created item:', await itemResponse.json());
         }
       }
       
-      return response;
+      return purchaseRequest;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/purchase-requests"] });
@@ -125,20 +147,35 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
       });
       onClose();
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Purchase request creation error:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer la demande",
+        description: error.message || "Impossible de créer la demande",
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: any) => {
+    console.log('Form submitted with data:', data);
+    console.log('Current items:', items);
+    
     if (items.length === 0) {
       toast({
         title: "Attention",
         description: "Ajoutez au moins un article à la demande",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check if all items have required fields
+    const invalidItems = items.filter(item => !item.articleId || !item.quantiteDemandee || item.quantiteDemandee < 1);
+    if (invalidItems.length > 0) {
+      toast({
+        title: "Attention",
+        description: "Tous les articles doivent avoir un article sélectionné et une quantité > 0",
         variant: "destructive",
       });
       return;
