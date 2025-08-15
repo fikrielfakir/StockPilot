@@ -12,13 +12,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### August 2025 - Migration & Real-time Dashboard Optimization Complete
+### August 2025 - Migration & Form Integration Optimization Complete
 - **Migration to Replit Environment Complete**: Successfully migrated comprehensive StockCéramique system from Replit Agent to standard Replit environment with full functionality preservation (August 15, 2025)
 - **Real-time Dashboard Values Connected**: Fixed analytics service method naming issues and connected dashboard to live PostgreSQL database showing accurate €13,005 total stock value, 0 critical articles, and 5 total articles (August 15, 2025)
 - **Database-Driven Analytics**: All dashboard metrics now pull from real database with proper formatting - total articles count, low stock alerts, pending requests, and financial calculations all working correctly (August 15, 2025)
 - **Enhanced Dashboard Display**: Optimized both Dashboard.tsx and EnhancedDashboard.tsx to show real-time values with improved French locale formatting for currency and proper database field mapping (August 15, 2025)
 - **Analytics Service Optimization**: Fixed TypeScript errors and method naming conflicts (getAllArticles → getArticles, etc.) ensuring all analytics endpoints return authentic database values (August 15, 2025)
 - **Performance Metrics Integration**: Real-time performance monitoring with actual query times, cache hit ratios, and system metrics integrated into enhanced dashboard interface (August 15, 2025)
+- **Administration Menu Cleanup**: Removed Administration menu item from user dropdown and streamlined navigation to Settings only (August 15, 2025)
+- **Settings Integration Complete**: Connected ArticleForm Catégorie/Marque fields and RequestorForm Département/Poste fields to use data from Settings page instead of hardcoded values (August 15, 2025)
+- **Dynamic Form Dropdowns**: Updated all form dropdowns to pull from database: Categories, Brands, Departments, and Positions now use Settings-managed data with proper API integration (August 15, 2025)
 - **Advanced Optimization Components Deployed**: Successfully implemented ToastNotifications, KeyboardShortcuts, BulkOperations, VirtualizedDataTable, AdvancedAnalytics, and SmartAlerts components (August 15, 2025)
 - **Database Performance Optimization**: Created and applied strategic database indexing including composite indexes for frequent query patterns, full-text search capabilities, and performance monitoring views (August 15, 2025)
 - **PWA Enhancement Complete**: Advanced Progressive Web App functionality with offline support, background sync, push notifications, and intelligent caching strategies via service worker (August 15, 2025)

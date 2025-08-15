@@ -1,9 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { insertRequestorSchema, type Requestor, type InsertRequestor } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -15,22 +16,19 @@ interface RequestorFormProps {
   onClose: () => void;
 }
 
-const departements = [
-  "Production",
-  "Maintenance",
-  "Qualité",
-  "Logistique",
-  "Administration",
-  "Service Technique",
-  "Commercial",
-  "Achats",
-  "Direction",
-  "Autre"
-];
+
 
 export default function RequestorForm({ requestor, onClose }: RequestorFormProps) {
   const { toast } = useToast();
   const isEditing = !!requestor;
+
+  const { data: departements = [] } = useQuery({
+    queryKey: ["/api/departements"],
+  });
+
+  const { data: postes = [] } = useQuery({
+    queryKey: ["/api/postes"],
+  });
 
   const form = useForm<InsertRequestor>({
     resolver: zodResolver(insertRequestorSchema),
@@ -147,13 +145,18 @@ export default function RequestorForm({ requestor, onClose }: RequestorFormProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Département *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Département ou service" 
-                        {...field} 
-                        data-testid="input-departement"
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-departement">
+                          <SelectValue placeholder="Sélectionner un département" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departements.map(departement => (
+                          <SelectItem key={departement.nom} value={departement.nom}>{departement.nom}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -164,14 +167,18 @@ export default function RequestorForm({ requestor, onClose }: RequestorFormProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Poste</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Fonction ou poste" 
-                        {...field} 
-                        value={field.value || ""}
-                        data-testid="input-poste"
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-poste">
+                          <SelectValue placeholder="Sélectionner un poste" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {postes.map(poste => (
+                          <SelectItem key={poste.nom} value={poste.nom}>{poste.nom}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

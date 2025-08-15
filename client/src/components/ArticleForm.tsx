@@ -17,15 +17,7 @@ interface ArticleFormProps {
   onClose: () => void;
 }
 
-const categories = [
-  "Joints",
-  "Électrique",
-  "Régulation",
-  "Mécanique",
-  "Thermique",
-  "Filtration",
-  "Autre"
-];
+
 
 const unites = ["pcs", "kg", "m", "L", "m²", "m³"];
 
@@ -35,6 +27,14 @@ export default function ArticleForm({ article, onClose }: ArticleFormProps) {
 
   const { data: suppliers = [] } = useQuery({
     queryKey: ["/api/suppliers"],
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["/api/categories"],
+  });
+
+  const { data: marques = [] } = useQuery({
+    queryKey: ["/api/marques"],
   });
 
   const form = useForm<InsertArticle>({
@@ -191,7 +191,7 @@ export default function ArticleForm({ article, onClose }: ArticleFormProps) {
                       </FormControl>
                       <SelectContent>
                         {categories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                          <SelectItem key={category.nom} value={category.nom}>{category.nom}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -205,14 +205,18 @@ export default function ArticleForm({ article, onClose }: ArticleFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Marque</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Marque du produit" 
-                        {...field} 
-                        value={field.value || ""}
-                        data-testid="input-marque"
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-marque">
+                          <SelectValue placeholder="Sélectionner une marque" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {marques.map(marque => (
+                          <SelectItem key={marque.nom} value={marque.nom}>{marque.nom}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
