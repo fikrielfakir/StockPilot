@@ -178,8 +178,8 @@ export const generateStockReportPDF = (articles: any[], title: string = 'Rapport
     article.categorie,
     article.stockActuel.toString(),
     article.unite,
-    article.prixUnitaire ? `${article.prixUnitaire}€` : '-',
-    article.prixUnitaire ? `${(article.prixUnitaire * article.stockActuel).toFixed(2)}€` : '-'
+    article.prixUnitaire ? `${article.prixUnitaire} MAD` : '-',
+    article.prixUnitaire ? `${(article.prixUnitaire * article.stockActuel).toFixed(2)} MAD` : '-'
   ]);
 
   const totalValue = articles.reduce((total, article) => {
@@ -189,7 +189,7 @@ export const generateStockReportPDF = (articles: any[], title: string = 'Rapport
 
   generatePDF({
     title,
-    subtitle: `Total articles: ${articles.length} - Valeur totale: ${totalValue.toFixed(2)}€`,
+    subtitle: `Total articles: ${articles.length} - Valeur totale: ${totalValue.toFixed(2)} MAD`,
     headers,
     data,
     filename: 'rapport-stock'

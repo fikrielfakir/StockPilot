@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import SettingsModal from "@/components/Settings";
 import UserPreferences from "@/components/UserPreferences";
+import GlobalSearch from "@/components/GlobalSearch";
 import { 
   Home, 
   Package, 
@@ -13,14 +14,12 @@ import {
   Building, 
   Users, 
   FileText,
-  Search,
   Settings,
   Bell,
   User,
   ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +44,6 @@ const navigationItems = [
 
 export default function TopNavigation() {
   const [location] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [showUserPreferences, setShowUserPreferences] = useState(false);
 
@@ -71,19 +69,8 @@ export default function TopNavigation() {
           </div>
         </div>
 
-        {/* Center Section - Search Bar */}
-        <div className="flex-1 max-w-xl mx-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              type="search"
-              placeholder="Rechercher articles, fournisseurs, demandes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full bg-gray-50 border-gray-200 rounded-lg focus:bg-white focus:border-windows-blue focus:ring-1 focus:ring-windows-blue"
-            />
-          </div>
-        </div>
+        {/* Center Section - Global Search */}
+        <GlobalSearch />
 
         {/* Right Section - Alerts, Settings, Profile */}
         <div className="flex items-center space-x-3">

@@ -282,7 +282,7 @@ export default function Articles() {
                   { key: 'marque', label: 'Marque' },
                   { key: 'stockActuel', label: 'Stock Actuel', format: (val) => val?.toString() || '0' },
                   { key: 'seuilMinimum', label: 'Seuil Minimum', format: (val) => val?.toString() || 'N/A' },
-                  { key: 'prixUnitaire', label: 'Prix Unitaire (€)', format: (val) => val ? `${val} €` : 'N/A' },
+                  { key: 'prixUnitaire', label: 'Prix Unitaire (MAD)', format: (val) => val ? `${val} MAD` : 'N/A' },
                   { key: 'unite', label: 'Unité' },
                 ]}
                 className="mr-2"
@@ -407,7 +407,7 @@ export default function Articles() {
                             </span>
                           </div>
                         </td>
-                        <td className="p-4 text-sm text-ms-gray">{article.prixUnitaire ? `€${article.prixUnitaire}` : '-'}</td>
+                        <td className="p-4 text-sm text-ms-gray">{article.prixUnitaire ? `${article.prixUnitaire} MAD` : '-'}</td>
                         <td className="p-4 text-sm text-ms-gray">{getSupplierName(article.fournisseurId)}</td>
                         <td className="p-4">
                           <div className="flex space-x-1">

@@ -44,6 +44,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Global search endpoint
+  app.get("/api/search/global", async (req, res) => {
+    try {
+      const { query } = req.query;
+      
+      if (!query || typeof query !== 'string' || query.length < 2) {
+        return res.json({ results: [], totalCount: 0 });
+      }
+
+      const searchTerm = query.toLowerCase();
+      const results: any[] = [];
+
+      // Search Articles
+      const articles = await storage.getArticles();
+      const matchingArticles = articles.filter(article => 
+        article.designation.toLowerCase().includes(searchTerm) ||
+        article.codeArticle.toLowerCase().includes(searchTerm) ||
+        (article.reference && article.reference.toLowerCase().includes(searchTerm)) ||
+        article.categorie.toLowerCase().includes(searchTerm)
+      ).slice(0, 5).map(article => ({
+        type: 'article',
+        id: article.id,
+        title: article.designation,
+        subtitle: `${article.codeArticle} - ${article.categorie}`,
+        extra: `Stock: ${article.stockActuel}`,
+        path: '/articles',
+        data: article
+      }));
+
+      // Search Suppliers
+      const suppliers = await storage.getSuppliers();
+      const matchingSuppliers = suppliers.filter(supplier => 
+        supplier.nom.toLowerCase().includes(searchTerm) ||
+        (supplier.contact && supplier.contact.toLowerCase().includes(searchTerm))
+      ).slice(0, 5).map(supplier => ({
+        type: 'supplier',
+        id: supplier.id,
+        title: supplier.nom,
+        subtitle: supplier.contact || 'Pas de contact',
+        extra: supplier.adresse || '',
+        path: '/suppliers',
+        data: supplier
+      }));
+
+      // Search Purchase Requests
+      const requests = await storage.getPurchaseRequests();
+      const matchingRequests = requests.filter(request => {
+        const requestorName = request.requestorId ? 'Demande' : '';
+        return requestorName.toLowerCase().includes(searchTerm) ||
+               (request.observations && request.observations.toLowerCase().includes(searchTerm));
+      }).slice(0, 5).map(request => ({
+        type: 'purchase-request',
+        id: request.id,
+        title: `Demande d'achat #${request.id.slice(0, 8)}`,
+        subtitle: `Statut: ${request.statut === 'en_attente' ? 'En attente' : 
+                             request.statut === 'approuve' ? 'Approuvé' : 
+                             request.statut === 'refuse' ? 'Refusé' : 'Commandé'}`,
+        extra: new Date(request.dateDemande).toLocaleDateString('fr-FR'),
+        path: '/purchase-requests',
+        data: request
+      }));
+
+      // Search Requestors
+      const requestors = await storage.getRequestors();
+      const matchingRequestors = requestors.filter(requestor => 
+        `${requestor.prenom} ${requestor.nom}`.toLowerCase().includes(searchTerm) ||
+        requestor.departement.toLowerCase().includes(searchTerm) ||
+        (requestor.poste && requestor.poste.toLowerCase().includes(searchTerm))
+      ).slice(0, 5).map(requestor => ({
+        type: 'requestor',
+        id: requestor.id,
+        title: `${requestor.prenom} ${requestor.nom}`,
+        subtitle: requestor.departement,
+        extra: requestor.poste || '',
+        path: '/requestors',
+        data: requestor
+      }));
+
+      // Search Receptions
+      const receptions = await storage.getReceptions();
+      const matchingReceptions = receptions.filter(reception => 
+        (reception.observations && reception.observations.toLowerCase().includes(searchTerm))
+      ).slice(0, 3).map(reception => ({
+        type: 'reception',
+        id: reception.id,
+        title: `Réception #${reception.id.slice(0, 8)}`,
+        subtitle: `Quantité: ${reception.quantiteRecue}`,
+        extra: new Date(reception.dateReception).toLocaleDateString('fr-FR'),
+        path: '/reception',
+        data: reception
+      }));
+
+      // Search Outbounds
+      const outbounds = await storage.getOutbounds();
+      const matchingOutbounds = outbounds.filter(outbound => 
+        (outbound.motif && outbound.motif.toLowerCase().includes(searchTerm)) ||
+        (outbound.observations && outbound.observations.toLowerCase().includes(searchTerm))
+      ).slice(0, 3).map(outbound => ({
+        type: 'outbound',
+        id: outbound.id,
+        title: `Sortie #${outbound.id.slice(0, 8)}`,
+        subtitle: outbound.motif || 'Sortie stock',
+        extra: `Quantité: ${outbound.quantiteSortie}`,
+        path: '/outbound',
+        data: outbound
+      }));
+
+      // Combine all results
+      results.push(...matchingArticles);
+      results.push(...matchingSuppliers);
+      results.push(...matchingRequests);
+      results.push(...matchingRequestors);
+      results.push(...matchingReceptions);
+      results.push(...matchingOutbounds);
+
+      res.json({
+        results: results.slice(0, 15), // Limit total results
+        totalCount: results.length,
+        categories: {
+          articles: matchingArticles.length,
+          suppliers: matchingSuppliers.length,
+          requests: matchingRequests.length,
+          requestors: matchingRequestors.length,
+          receptions: matchingReceptions.length,
+          outbounds: matchingOutbounds.length
+        }
+      });
+    } catch (error) {
+      console.error('Global search error:', error);
+      res.status(500).json({ message: "Erreur lors de la recherche globale" });
+    }
+  });
+
   app.get("/api/articles/:id", async (req, res) => {
     try {
       const article = await storage.getArticle(req.params.id);

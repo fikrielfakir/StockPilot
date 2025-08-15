@@ -288,7 +288,7 @@ export default function ArticleForm({ article, onClose }: ArticleFormProps) {
                 name="prixUnitaire"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Prix Unitaire (€)</FormLabel>
+                    <FormLabel>Prix Unitaire (MAD)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 

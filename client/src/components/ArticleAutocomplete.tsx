@@ -110,7 +110,7 @@ export default function ArticleAutocomplete({
                         <span>Réf: {article.reference}</span>
                         <span>Stock: {article.stockActuel}</span>
                         {article.prixUnitaire && (
-                          <span>Prix: {article.prixUnitaire}€</span>
+                          <span>Prix: {article.prixUnitaire} MAD</span>
                         )}
                       </div>
                       <span className="text-xs text-gray-400 mt-1 max-w-[300px] truncate">

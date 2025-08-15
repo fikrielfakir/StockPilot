@@ -321,7 +321,7 @@ export function AdvancedAnalytics({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Économies Prédites</p>
-                <p className="text-2xl font-bold">€12.5K</p>
+                <p className="text-2xl font-bold">12.5K MAD</p>
               </div>
               <div className="p-2 bg-green-100 rounded-full">
                 <DollarSign className="h-5 w-5 text-green-600" />
@@ -526,16 +526,16 @@ export function AdvancedAnalytics({
                     <div className="grid grid-cols-3 gap-4 mb-3">
                       <div>
                         <p className="text-xs text-muted-foreground">Valeur actuelle</p>
-                        <p className="font-medium">€{opt.currentValue.toLocaleString()}</p>
+                        <p className="font-medium">{opt.currentValue.toLocaleString()} MAD</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Valeur optimisée</p>
-                        <p className="font-medium">€{opt.optimizedValue.toLocaleString()}</p>
+                        <p className="font-medium">{opt.optimizedValue.toLocaleString()} MAD</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Économies potentielles</p>
                         <p className={`font-medium ${opt.potentialSavings > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {opt.potentialSavings > 0 ? '+' : ''}€{opt.potentialSavings.toLocaleString()}
+                          {opt.potentialSavings > 0 ? '+' : ''}{opt.potentialSavings.toLocaleString()} MAD
                         </p>
                       </div>
                     </div>
@@ -590,11 +590,11 @@ export function AdvancedAnalytics({
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <p className="text-xs text-muted-foreground">Prix actuel</p>
-                        <p className="font-medium">€{price.currentPrice.toFixed(2)}</p>
+                        <p className="font-medium">{price.currentPrice.toFixed(2)} MAD</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Prix prédit</p>
-                        <p className="font-medium">€{price.predictedPrice.toFixed(2)}</p>
+                        <p className="font-medium">{price.predictedPrice.toFixed(2)} MAD</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Volatilité</p>

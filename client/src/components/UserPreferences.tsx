@@ -354,8 +354,8 @@ export default function UserPreferences({ onClose }: UserPreferencesProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="MAD">Dirham Marocain (MAD)</SelectItem>
                   <SelectItem value="EUR">Euro (€)</SelectItem>
-                  <SelectItem value="USD">Dollar US ($)</SelectItem>
                   <SelectItem value="GBP">Livre Sterling (£)</SelectItem>
                   <SelectItem value="CHF">Franc Suisse (CHF)</SelectItem>
                 </SelectContent>
@@ -399,7 +399,7 @@ export default function UserPreferences({ onClose }: UserPreferencesProps) {
                 className="mt-2"
                 placeholder="1000"
               />
-              <p className="text-xs text-gray-600 mt-1">Montant maximum pour approbation automatique (€)</p>
+              <p className="text-xs text-gray-600 mt-1">Montant maximum pour approbation automatique (MAD)</p>
             </div>
           </div>
 
