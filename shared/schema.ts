@@ -350,6 +350,4 @@ export type Poste = typeof postes.$inferSelect;
 export type InsertPoste = z.infer<typeof insertPosteSchema>;
 
 // New types for enhanced purchase requests
-export type PurchaseRequestItem = typeof purchaseRequestItems.$inferSelect;
-export type InsertPurchaseRequestItem = z.infer<typeof insertPurchaseRequestItemSchema>;
 export type CompletePurchaseRequest = z.infer<typeof insertCompletePurchaseRequestSchema>;

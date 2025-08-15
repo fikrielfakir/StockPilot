@@ -5,7 +5,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/Layout";
 import PWASupport from "@/components/PWASupport";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import Dashboard from "@/pages/Dashboard";
+import EnhancedDashboard from "@/pages/EnhancedDashboard";
 import Articles from "@/pages/Articles";
 import Suppliers from "@/pages/Suppliers";
 import Requestors from "@/pages/Requestors";
@@ -24,8 +26,9 @@ function Router() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Dashboard} />
+        <Route path="/" component={EnhancedDashboard} />
         <Route path="/dashboard" component={Dashboard} />
+        <Route path="/enhanced-dashboard" component={EnhancedDashboard} />
         <Route path="/articles" component={Articles} />
         <Route path="/suppliers" component={Suppliers} />
         <Route path="/requestors" component={Requestors} />
@@ -48,6 +51,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <KeyboardShortcuts />
         <Toaster />
         <Router />
         <PWASupport />

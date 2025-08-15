@@ -285,7 +285,6 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       observations: request.observations ?? null,
       statut: request.statut ?? "en_attente",
-      supplierId: request.supplierId ?? null,
     };
     this.purchaseRequests.set(id, newRequest);
     return newRequest;
