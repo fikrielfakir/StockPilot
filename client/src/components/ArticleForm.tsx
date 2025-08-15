@@ -190,9 +190,12 @@ export default function ArticleForm({ article, onClose }: ArticleFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.map(category => (
+                        {categories.filter(category => category?.nom && category.nom.trim() !== '').map(category => (
                           <SelectItem key={category.nom} value={category.nom}>{category.nom}</SelectItem>
                         ))}
+                        {categories.length === 0 && (
+                          <SelectItem value="aucune-categorie" disabled>Aucune catégorie disponible</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -212,9 +215,12 @@ export default function ArticleForm({ article, onClose }: ArticleFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {marques.map(marque => (
+                        {marques.filter(marque => marque?.nom && marque.nom.trim() !== '').map(marque => (
                           <SelectItem key={marque.nom} value={marque.nom}>{marque.nom}</SelectItem>
                         ))}
+                        {marques.length === 0 && (
+                          <SelectItem value="aucune-marque" disabled>Aucune marque disponible</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />

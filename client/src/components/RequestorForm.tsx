@@ -152,9 +152,12 @@ export default function RequestorForm({ requestor, onClose }: RequestorFormProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {departements.map(departement => (
+                        {departements.filter(dept => dept?.nom && dept.nom.trim() !== '').map(departement => (
                           <SelectItem key={departement.nom} value={departement.nom}>{departement.nom}</SelectItem>
                         ))}
+                        {departements.length === 0 && (
+                          <SelectItem value="aucun-departement" disabled>Aucun département disponible</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -174,9 +177,12 @@ export default function RequestorForm({ requestor, onClose }: RequestorFormProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {postes.map(poste => (
+                        {postes.filter(poste => poste?.nom && poste.nom.trim() !== '').map(poste => (
                           <SelectItem key={poste.nom} value={poste.nom}>{poste.nom}</SelectItem>
                         ))}
+                        {postes.length === 0 && (
+                          <SelectItem value="aucun-poste" disabled>Aucun poste disponible</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
