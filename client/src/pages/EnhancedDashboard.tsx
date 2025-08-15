@@ -183,10 +183,10 @@ export default function EnhancedDashboard() {
       memoryUsage: 0.67
     },
     inventory: {
-      totalValue: (dashboardMetrics as any)?.totalValue || 0,
-      criticalItems: (dashboardMetrics as any)?.criticalItems || 0,
-      optimizationScore: (dashboardMetrics as any)?.optimizationScore || 0.5,
-      turnoverRate: (dashboardMetrics as any)?.turnoverRate || 0
+      totalValue: (dashboardMetrics as any)?.stockValue || 0,
+      criticalItems: (dashboardMetrics as any)?.lowStock || 0,
+      optimizationScore: (advancedAnalytics as any)?.optimizationScore || 0.75,
+      turnoverRate: (advancedAnalytics as any)?.turnoverRate || 2.5
     },
     predictions: (advancedAnalytics as any) ? {
       demandForecast: (advancedAnalytics as any).demandForecasting || [],
@@ -233,7 +233,7 @@ export default function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Valeur Stock Total</p>
-                <p className="text-2xl font-bold">€{((dashboardMetrics as any)?.totalValue || 0)?.toLocaleString()}</p>
+                <p className="text-2xl font-bold">€{((dashboardMetrics as any)?.stockValue || 0)?.toLocaleString('fr-FR')}</p>
               </div>
               <div className="p-2 bg-green-100 rounded-full">
                 <Package className="h-5 w-5 text-green-600" />
@@ -242,7 +242,7 @@ export default function EnhancedDashboard() {
             <div className="flex items-center mt-2">
               <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
               <span className="text-xs text-green-600">
-                {(dashboardMetrics as any)?.totalArticles || 0} articles total
+                {(dashboardMetrics as any)?.totalArticles || 0} articles en stock
               </span>
             </div>
           </CardContent>
@@ -253,7 +253,7 @@ export default function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Articles Critiques</p>
-                <p className="text-2xl font-bold text-red-600">{(dashboardMetrics as any)?.criticalItems || 0}</p>
+                <p className="text-2xl font-bold text-red-600">{(dashboardMetrics as any)?.lowStock || 0}</p>
               </div>
               <div className="p-2 bg-red-100 rounded-full">
                 <AlertTriangle className="h-5 w-5 text-red-600" />

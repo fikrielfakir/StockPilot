@@ -1,35 +1,36 @@
-import { DatabaseStorage } from './storage';
+import { DatabaseStorage, IStorage } from './storage';
+import { Article, Supplier, PurchaseRequest, Reception, Outbound, StockMovement } from '@shared/schema';
 
 export class AnalyticsService {
-  constructor(private storage: DatabaseStorage) {}
+  constructor(private storage: IStorage) {}
 
   // Real-time dashboard metrics
   async getDashboardMetrics() {
-    const articles = await this.storage.getAllArticles();
-    const suppliers = await this.storage.getAllSuppliers();
-    const purchaseRequests = await this.storage.getAllPurchaseRequests();
-    const receptions = await this.storage.getAllReceptions();
-    const outbounds = await this.storage.getAllOutbounds();
-    const stockMovements = await this.storage.getAllStockMovements();
+    const articles = await this.storage.getArticles();
+    const suppliers = await this.storage.getSuppliers();
+    const purchaseRequests = await this.storage.getPurchaseRequests();
+    const receptions = await this.storage.getReceptions();
+    const outbounds = await this.storage.getOutbounds();
+    const stockMovements = await this.storage.getStockMovements();
 
     // Calculate real metrics
-    const totalValue = articles.reduce((sum, article) => 
+    const totalValue = articles.reduce((sum: number, article: Article) => 
       sum + (article.stockActuel * parseFloat(article.prixUnitaire || '0')), 0
     );
 
-    const criticalItems = articles.filter(article => 
+    const criticalItems = articles.filter((article: Article) => 
       article.stockActuel <= (article.seuilMinimum || 0)
     ).length;
 
-    const activeSuppliers = suppliers.filter(supplier => 
-      articles.some(article => article.fournisseurId === supplier.id)
+    const activeSuppliers = suppliers.filter((supplier: Supplier) => 
+      articles.some((article: Article) => article.fournisseurId === supplier.id)
     ).length;
 
-    const pendingRequests = purchaseRequests.filter(req => 
+    const pendingRequests = purchaseRequests.filter((req: PurchaseRequest) => 
       req.statut === 'en_attente'
     ).length;
 
-    const recentMovements = stockMovements.filter(movement => {
+    const recentMovements = stockMovements.filter((movement: StockMovement) => {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       return movement.dateMovement >= weekAgo;
@@ -49,11 +50,11 @@ export class AnalyticsService {
 
   // Advanced analytics data
   async getAdvancedAnalytics() {
-    const articles = await this.storage.getAllArticles();
-    const suppliers = await this.storage.getAllSuppliers();
-    const purchaseRequests = await this.storage.getAllPurchaseRequests();
-    const receptions = await this.storage.getAllReceptions();
-    const stockMovements = await this.storage.getAllStockMovements();
+    const articles = await this.storage.getArticles();
+    const suppliers = await this.storage.getSuppliers();
+    const purchaseRequests = await this.storage.getPurchaseRequests();
+    const receptions = await this.storage.getReceptions();
+    const stockMovements = await this.storage.getStockMovements();
 
     return {
       demandForecasting: await this.generateDemandForecast(articles, stockMovements),
@@ -66,16 +67,16 @@ export class AnalyticsService {
 
   // Smart alerts based on real data
   async getSmartAlerts() {
-    const articles = await this.storage.getAllArticles();
-    const suppliers = await this.storage.getAllSuppliers();
-    const purchaseRequests = await this.storage.getAllPurchaseRequests();
-    const receptions = await this.storage.getAllReceptions();
-    const stockMovements = await this.storage.getAllStockMovements();
+    const articles = await this.storage.getArticles();
+    const suppliers = await this.storage.getSuppliers();
+    const purchaseRequests = await this.storage.getPurchaseRequests();
+    const receptions = await this.storage.getReceptions();
+    const stockMovements = await this.storage.getStockMovements();
 
     const alerts = [];
 
     // Critical stock alerts
-    const criticalStock = articles.filter(article => 
+    const criticalStock = articles.filter((article: Article) => 
       article.stockActuel <= (article.seuilMinimum || 0)
     );
 
@@ -108,7 +109,7 @@ export class AnalyticsService {
     }
 
     // Overdue purchase requests
-    const overdueRequests = purchaseRequests.filter(req => {
+    const overdueRequests = purchaseRequests.filter((req: PurchaseRequest) => {
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
       return req.dateDemande < weekAgo && req.statut === 'en_attente';
@@ -170,16 +171,16 @@ export class AnalyticsService {
       });
     }
 
-    return alerts.sort((a, b) => {
-      const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-      return severityOrder[b.severity] - severityOrder[a.severity];
+    return alerts.sort((a: any, b: any) => {
+      const severityOrder: Record<string, number> = { critical: 4, high: 3, medium: 2, low: 1 };
+      return (severityOrder[b.severity] || 0) - (severityOrder[a.severity] || 0);
     });
   }
 
   // Performance metrics
   async getPerformanceMetrics() {
     const startTime = Date.now();
-    const articles = await this.storage.getAllArticles();
+    const articles = await this.storage.getArticles();
     const queryTime = Date.now() - startTime;
 
     return {
@@ -192,7 +193,7 @@ export class AnalyticsService {
   }
 
   // Helper methods for calculations
-  private calculateTurnoverRate(stockMovements: any[]): number {
+  private calculateTurnoverRate(stockMovements: StockMovement[]): number {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
@@ -204,7 +205,7 @@ export class AnalyticsService {
     return totalOutgoing / 30; // Daily average
   }
 
-  private calculateOptimizationScore(articles: any[], stockMovements: any[]): number {
+  private calculateOptimizationScore(articles: Article[], stockMovements: StockMovement[]): number {
     let score = 0;
     let totalWeight = 0;
 
@@ -267,7 +268,7 @@ export class AnalyticsService {
     // Analyze price trends
     for (const [articleId, prices] of articlePrices.entries()) {
       if (prices.length >= 2) {
-        prices.sort((a, b) => a.date.getTime() - b.date.getTime());
+        prices.sort((a: any, b: any) => a.date.getTime() - b.date.getTime());
         const latest = prices[prices.length - 1];
         const previous = prices[prices.length - 2];
         
