@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,24 +14,14 @@ import {
   Shield, 
   Database, 
   FileText, 
-  Zap, 
-  Bell, 
-  Globe,
-  Calendar,
   Download,
   Upload,
-  Trash2,
-  Save,
-  AlertTriangle,
-  Eye,
-  Key,
-  Server,
-  RefreshCw,
   Plus,
-  Pencil
+  Pencil,
+  Trash2,
+  Save
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
@@ -97,16 +86,6 @@ interface SystemSettings {
   apiKeysEnabled: boolean;
 }
 
-interface AdminUser {
-  id: string;
-  username: string;
-  email: string;
-  role: 'admin' | 'super_admin' | 'magasinier' | 'demandeur' | 'read_only';
-  isActive: boolean;
-  lastLogin?: Date;
-  createdAt: Date;
-}
-
 interface EntityFormProps {
   entity: any;
   onSubmit: (data: any) => void;
@@ -128,59 +107,52 @@ function EntityForm({ entity, onSubmit, onCancel, schema, fields }: EntityFormPr
 
   const { data: departements = [] } = useQuery<any[]>({
     queryKey: ["/api/departements"],
+    enabled: fields.some(f => f.name === 'departementId')
   });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {fields.map((field) => (
-        <div key={field.name} className="space-y-2">
+        <div key={field.name}>
           <Label htmlFor={field.name}>{field.label}</Label>
           {field.type === 'input' && (
             <Input
-              id={field.name}
               {...register(field.name)}
-              className={errors[field.name] ? "border-red-500" : ""}
+              className={errors[field.name] ? 'border-red-500' : ''}
             />
           )}
           {field.type === 'textarea' && (
             <Textarea
-              id={field.name}
               {...register(field.name)}
-              className={errors[field.name] ? "border-red-500" : ""}
+              className={errors[field.name] ? 'border-red-500' : ''}
             />
           )}
           {field.type === 'select' && field.name === 'departementId' && (
-            <Select 
-              value={watch(field.name) || ""} 
-              onValueChange={(value) => setValue(field.name, value)}
-            >
+            <Select onValueChange={(value) => setValue(field.name, value)} defaultValue={entity?.[field.name]}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un département" />
               </SelectTrigger>
               <SelectContent>
-                {departements.filter((dept: any) => dept?.id && dept?.nom).map((dept: any) => (
+                {departements.filter(dept => dept && dept.nom).map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.nom}
                   </SelectItem>
                 ))}
-                {departements.length === 0 && (
-                  <SelectItem value="no-departments" disabled>Aucun département disponible</SelectItem>
-                )}
               </SelectContent>
             </Select>
           )}
           {errors[field.name] && (
-            <p className="text-sm text-red-500">{(errors[field.name] as any)?.message}</p>
+            <p className="text-sm text-red-500 mt-1">{errors[field.name]?.message}</p>
           )}
         </div>
       ))}
-      <div className="flex space-x-2 pt-4">
-        <Button type="submit" size="sm">
-          <Save className="w-4 h-4 mr-2" />
-          Enregistrer
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Annuler
+        </Button>
+        <Button type="submit">
+          <Save className="w-4 h-4 mr-2" />
+          Sauvegarder
         </Button>
       </div>
     </form>
@@ -191,7 +163,7 @@ export default function Settings() {
   const [editingEntity, setEditingEntity] = useState<any>(null);
   const [entityType, setEntityType] = useState<string>("");
   const [showDialog, setShowDialog] = useState(false);
-  const [activeTab, setActiveTab] = useState("basic");
+  const [currentPopup, setCurrentPopup] = useState<string | null>(null);
   const [systemSettings, setSystemSettings] = useState<SystemSettings>({
     globalMinimumStock: 10,
     autoReorderThreshold: 5,
@@ -220,109 +192,25 @@ export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Data queries
+  // Only load data when popup is opened (performance optimization)
   const { data: categories = [] } = useQuery<any[]>({
     queryKey: ["/api/categories"],
+    enabled: currentPopup === "categories"
   });
 
   const { data: marques = [] } = useQuery<any[]>({
     queryKey: ["/api/marques"],
+    enabled: currentPopup === "marques"
   });
 
   const { data: departements = [] } = useQuery<any[]>({
     queryKey: ["/api/departements"],
+    enabled: currentPopup === "departements" || showDialog
   });
 
   const { data: postes = [] } = useQuery<any[]>({
     queryKey: ["/api/postes"],
-  });
-
-  const { data: users = [] } = useQuery<AdminUser[]>({
-    queryKey: ["/api/admin/users"],
-  });
-
-  const { data: auditLogs = [] } = useQuery<any[]>({
-    queryKey: ["/api/admin/audit-logs"],
-  });
-
-  const { data: backupLogs = [] } = useQuery<any[]>({
-    queryKey: ["/api/admin/backup-logs"],
-  });
-
-  // Mutations for basic settings
-  const createCategoryMutation = useMutation({
-    mutationFn: (data: any) => fetch("/api/categories", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
-      setShowDialog(false);
-      toast({ title: "Catégorie créée avec succès" });
-    },
-  });
-
-  const updateCategoryMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => 
-      fetch(`/api/categories/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
-      setShowDialog(false);
-      toast({ title: "Catégorie mise à jour avec succès" });
-    },
-  });
-
-  const deleteCategoryMutation = useMutation({
-    mutationFn: (id: string) => fetch(`/api/categories/${id}`, { method: "DELETE" }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
-      toast({ title: "Catégorie supprimée avec succès" });
-    },
-  });
-
-  // Similar mutations for marques, departements, postes
-  const createMarqueMutation = useMutation({
-    mutationFn: (data: any) => fetch("/api/marques", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/marques"] });
-      setShowDialog(false);
-      toast({ title: "Marque créée avec succès" });
-    },
-  });
-
-  const createDepartementMutation = useMutation({
-    mutationFn: (data: any) => fetch("/api/departements", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/departements"] });
-      setShowDialog(false);
-      toast({ title: "Département créé avec succès" });
-    },
-  });
-
-  const createPosteMutation = useMutation({
-    mutationFn: (data: any) => fetch("/api/postes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/postes"] });
-      setShowDialog(false);
-      toast({ title: "Poste créé avec succès" });
-    },
+    enabled: currentPopup === "postes"
   });
 
   // Entity configurations
@@ -331,104 +219,124 @@ export default function Settings() {
       title: "Catégories",
       data: categories,
       schema: categorySchema,
-      createMutation: createCategoryMutation,
-      updateMutation: updateCategoryMutation,
-      deleteMutation: deleteCategoryMutation,
       fields: [
         { name: 'nom', label: 'Nom', type: 'input' as const },
-        { name: 'description', label: 'Description', type: 'textarea' as const },
-      ],
+        { name: 'description', label: 'Description', type: 'textarea' as const }
+      ]
     },
     marques: {
       title: "Marques",
       data: marques,
       schema: marqueSchema,
-      createMutation: createMarqueMutation,
-      updateMutation: null,
-      deleteMutation: null,
       fields: [
         { name: 'nom', label: 'Nom', type: 'input' as const },
-        { name: 'description', label: 'Description', type: 'textarea' as const },
-      ],
+        { name: 'description', label: 'Description', type: 'textarea' as const }
+      ]
     },
     departements: {
       title: "Départements",
       data: departements,
       schema: departementSchema,
-      createMutation: createDepartementMutation,
-      updateMutation: null,
-      deleteMutation: null,
       fields: [
         { name: 'nom', label: 'Nom', type: 'input' as const },
-        { name: 'description', label: 'Description', type: 'textarea' as const },
-      ],
+        { name: 'description', label: 'Description', type: 'textarea' as const }
+      ]
     },
     postes: {
       title: "Postes",
       data: postes,
       schema: posteSchema,
-      createMutation: createPosteMutation,
-      updateMutation: null,
-      deleteMutation: null,
       fields: [
         { name: 'nom', label: 'Nom', type: 'input' as const },
         { name: 'departementId', label: 'Département', type: 'select' as const },
-        { name: 'description', label: 'Description', type: 'textarea' as const },
-      ],
-    },
-  };
-
-  const handleEdit = (entity: any, type: string) => {
-    setEditingEntity(entity);
-    setEntityType(type);
-    setShowDialog(true);
-  };
-
-  const handleCreate = (type: string) => {
-    setEditingEntity(null);
-    setEntityType(type);
-    setShowDialog(true);
-  };
-
-  const handleSubmit = (data: any) => {
-    const config = entityConfigs[entityType as keyof typeof entityConfigs];
-    if (editingEntity && config.updateMutation) {
-      config.updateMutation.mutate({ id: editingEntity.id, data });
-    } else if (config.createMutation) {
-      config.createMutation.mutate(data);
+        { name: 'description', label: 'Description', type: 'textarea' as const }
+      ]
     }
   };
 
-  const handleDelete = (id: string, type: string) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
-      const config = entityConfigs[type as keyof typeof entityConfigs];
-      if (config.deleteMutation) {
-        config.deleteMutation.mutate(id);
-      }
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (data: any) => fetch(`/api/${entityType}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${entityType}`] });
+      setShowDialog(false);
+      toast({ title: `${entityConfigs[entityType as keyof typeof entityConfigs]?.title?.slice(0, -1)} créé(e) avec succès` });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      fetch(`/api/${entityType}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${entityType}`] });
+      setShowDialog(false);
+      toast({ title: `${entityConfigs[entityType as keyof typeof entityConfigs]?.title?.slice(0, -1)} mis(e) à jour avec succès` });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => 
+      fetch(`/api/${entityType}/${id}`, {
+        method: "DELETE",
+      }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${entityType}`] });
+      toast({ title: `${entityConfigs[entityType as keyof typeof entityConfigs]?.title?.slice(0, -1)} supprimé(e) avec succès` });
+    },
+  });
+
+  const handleAdd = (type: string) => {
+    setEntityType(type);
+    setEditingEntity(null);
+    setShowDialog(true);
+  };
+
+  const handleEdit = (type: string, entity: any) => {
+    setEntityType(type);
+    setEditingEntity(entity);
+    setShowDialog(true);
+  };
+
+  const handleDelete = (type: string, id: string) => {
+    setEntityType(type);
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleSubmit = (data: any) => {
+    if (editingEntity) {
+      updateMutation.mutate({ id: editingEntity.id, data });
+    } else {
+      createMutation.mutate(data);
     }
   };
 
   const handleExport = () => {
-    const settingsData = {
+    const dataToExport = {
       categories,
       marques,
       departements,
       postes,
       systemSettings,
-      exportDate: new Date().toISOString(),
+      exportDate: new Date().toISOString()
     };
     
-    const blob = new Blob([JSON.stringify(settingsData, null, 2)], {
-      type: 'application/json',
-    });
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `stockceramique-settings-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    
-    toast({ title: "Configuration exportée avec succès" });
   };
 
   const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -439,75 +347,51 @@ export default function Settings() {
     reader.onload = (e) => {
       try {
         const importedData = JSON.parse(e.target?.result as string);
-        setSystemSettings(importedData.systemSettings || systemSettings);
-        toast({ title: "Configuration importée avec succès" });
+        if (importedData.systemSettings) {
+          setSystemSettings(importedData.systemSettings);
+          localStorage.setItem('systemSettings', JSON.stringify(importedData.systemSettings));
+          toast({ title: "Paramètres importés avec succès" });
+        }
       } catch (error) {
-        toast({ 
-          title: "Erreur d'import", 
-          description: "Le fichier n'est pas valide",
-          variant: "destructive" 
-        });
+        toast({ title: "Erreur lors de l'importation", variant: "destructive" });
       }
     };
     reader.readAsText(file);
   };
 
-  const handleBackup = () => {
-    // Simulate backup creation
-    toast({ title: "Sauvegarde créée avec succès" });
-  };
-
   const renderEntityTab = (type: string) => {
     const config = entityConfigs[type as keyof typeof entityConfigs];
-    
+    if (!config) return null;
+
     return (
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center space-x-2">
-              <SettingsIcon className="w-5 h-5" />
-              <span>{config.title}</span>
-            </CardTitle>
-            <Button 
-              onClick={() => handleCreate(type)}
-              size="sm"
-              className="flex items-center space-x-1"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Ajouter</span>
-            </Button>
-          </div>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center space-x-2">
+            <FileText className="w-5 h-5" />
+            <span>{config.title}</span>
+          </CardTitle>
+          <Button onClick={() => handleAdd(type)} size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {config.data.map((item: any) => (
-              <div key={item.id} className="flex items-center justify-between p-3 border rounded">
+            {config.data.filter(item => item && item.nom).map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div>
-                  <h4 className="font-medium">{item.nom}</h4>
+                  <div className="font-medium">{item.nom}</div>
                   {item.description && (
-                    <p className="text-sm text-gray-600">{item.description}</p>
-                  )}
-                  {type === 'postes' && item.departement && (
-                    <p className="text-sm text-blue-600">Département: {item.departement.nom}</p>
+                    <div className="text-sm text-gray-600">{item.description}</div>
                   )}
                 </div>
                 <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(item, type)}
-                  >
-                    <Pencil className="w-4 h-4" />
+                  <Button variant="outline" size="sm" onClick={() => handleEdit(type, item)}>
+                    <Pencil className="w-3 h-3" />
                   </Button>
-                  {config.deleteMutation && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(item.id, type)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(type, item.id)}>
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
             ))}
@@ -545,222 +429,216 @@ export default function Settings() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-7 w-full">
-          <TabsTrigger value="basic" className="flex items-center space-x-2">
-            <SettingsIcon className="w-4 h-4" />
-            <span>Paramètres</span>
-          </TabsTrigger>
-          <TabsTrigger value="categories" className="flex items-center space-x-2">
-            <FileText className="w-4 h-4" />
-            <span>Catégories</span>
-          </TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center space-x-2">
-            <Users className="w-4 h-4" />
-            <span>Utilisateurs</span>
-          </TabsTrigger>
-          <TabsTrigger value="security" className="flex items-center space-x-2">
-            <Shield className="w-4 h-4" />
-            <span>Sécurité</span>
-          </TabsTrigger>
-          <TabsTrigger value="backup" className="flex items-center space-x-2">
-            <Database className="w-4 h-4" />
-            <span>Sauvegarde</span>
-          </TabsTrigger>
-          <TabsTrigger value="audit" className="flex items-center space-x-2">
-            <Eye className="w-4 h-4" />
-            <span>Audit</span>
-          </TabsTrigger>
-          <TabsTrigger value="system" className="flex items-center space-x-2">
-            <Server className="w-4 h-4" />
-            <span>Système</span>
-          </TabsTrigger>
-        </TabsList>
+      {/* Settings Cards Grid - Much faster than tabs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        
+        {/* Basic Settings Card */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <SettingsIcon className="w-5 h-5" />
+              <span>Paramètres Généraux</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Configuration de base du système</p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <SettingsIcon className="w-4 h-4 mr-2" />
+                  Configurer
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Paramètres Généraux</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Nom de l'entreprise</Label>
+                    <Input 
+                      value={systemSettings.companyName} 
+                      onChange={(e) => setSystemSettings(prev => ({ ...prev, companyName: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>Devise</Label>
+                    <Select 
+                      value={systemSettings.currency} 
+                      onValueChange={(value: any) => setSystemSettings(prev => ({ ...prev, currency: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MAD">Dirham (MAD)</SelectItem>
+                        <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                        <SelectItem value="USD">Dollar (USD)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Stock minimum global</Label>
+                    <Input 
+                      type="number"
+                      value={systemSettings.globalMinimumStock} 
+                      onChange={(e) => setSystemSettings(prev => ({ ...prev, globalMinimumStock: parseInt(e.target.value) }))}
+                    />
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
 
-        {/* Basic Settings Tab */}
-        <TabsContent value="basic" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Paramètres Généraux</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Nom de l'entreprise</Label>
-                  <Input 
-                    value={systemSettings.companyName} 
-                    onChange={(e) => setSystemSettings(prev => ({ ...prev, companyName: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label>Devise</Label>
-                  <Select 
-                    value={systemSettings.currency} 
-                    onValueChange={(value: any) => setSystemSettings(prev => ({ ...prev, currency: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MAD">Dirham (MAD)</SelectItem>
-                      <SelectItem value="EUR">Euro (EUR)</SelectItem>
-                      <SelectItem value="USD">Dollar (USD)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Format de date</Label>
-                  <Select 
-                    value={systemSettings.dateFormat} 
-                    onValueChange={(value: any) => setSystemSettings(prev => ({ ...prev, dateFormat: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dd/mm/yyyy">DD/MM/YYYY</SelectItem>
-                      <SelectItem value="mm-dd-yyyy">MM-DD-YYYY</SelectItem>
-                      <SelectItem value="yyyy-mm-dd">YYYY-MM-DD</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Langue</Label>
-                  <Select 
-                    value={systemSettings.language} 
-                    onValueChange={(value: any) => setSystemSettings(prev => ({ ...prev, language: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fr">Français</SelectItem>
-                      <SelectItem value="ar">العربية</SelectItem>
-                      <SelectItem value="en">English</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Categories Card */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <FileText className="w-5 h-5" />
+              <span>Catégories</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Gestion des catégories d'articles</p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  className="w-full"
+                  onClick={() => setCurrentPopup("categories")}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Gérer ({categories.length})
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Gestion des Catégories</DialogTitle>
+                </DialogHeader>
+                {currentPopup === "categories" && renderEntityTab("categories")}
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestion des Stocks</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Stock minimum global</Label>
-                  <Slider
-                    value={[systemSettings.globalMinimumStock]}
-                    onValueChange={([value]) => setSystemSettings(prev => ({ ...prev, globalMinimumStock: value }))}
-                    max={100}
-                    step={1}
-                    className="mt-2"
-                  />
-                  <div className="text-sm text-gray-500 mt-1">{systemSettings.globalMinimumStock} unités</div>
-                </div>
-                <div>
-                  <Label>Seuil de réapprovisionnement automatique</Label>
-                  <Slider
-                    value={[systemSettings.autoReorderThreshold]}
-                    onValueChange={([value]) => setSystemSettings(prev => ({ ...prev, autoReorderThreshold: value }))}
-                    max={50}
-                    step={1}
-                    className="mt-2"
-                  />
-                  <div className="text-sm text-gray-500 mt-1">{systemSettings.autoReorderThreshold} unités</div>
-                </div>
-                <div>
-                  <Label>Unité par défaut</Label>
-                  <Input 
-                    value={systemSettings.defaultUnit} 
-                    onChange={(e) => setSystemSettings(prev => ({ ...prev, defaultUnit: e.target.value }))}
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch 
-                    checked={systemSettings.trackExpiration}
-                    onCheckedChange={(checked) => setSystemSettings(prev => ({ ...prev, trackExpiration: checked }))}
-                  />
-                  <Label>Suivre les dates d'expiration</Label>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+        {/* Marques Card */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Badge className="w-5 h-5" />
+              <span>Marques</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Gestion des marques de produits</p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  className="w-full"
+                  onClick={() => setCurrentPopup("marques")}
+                >
+                  <Badge className="w-4 h-4 mr-2" />
+                  Gérer ({marques.length})
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Gestion des Marques</DialogTitle>
+                </DialogHeader>
+                {currentPopup === "marques" && renderEntityTab("marques")}
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
 
-        {/* Categories Tab */}
-        <TabsContent value="categories" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {renderEntityTab('categories')}
-            {renderEntityTab('marques')}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {renderEntityTab('departements')}
-            {renderEntityTab('postes')}
-          </div>
-        </TabsContent>
+        {/* Départements Card */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="w-5 h-5" />
+              <span>Départements</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Gestion des départements</p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  className="w-full"
+                  onClick={() => setCurrentPopup("departements")}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Gérer ({departements.length})
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Gestion des Départements</DialogTitle>
+                </DialogHeader>
+                {currentPopup === "departements" && renderEntityTab("departements")}
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
 
-        {/* Users Tab */}
-        <TabsContent value="users" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="w-5 h-5" />
-                <span>Gestion des Utilisateurs</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    La gestion des utilisateurs sera disponible dans une prochaine version.
-                  </AlertDescription>
-                </Alert>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600">1</div>
-                      <div className="text-sm text-gray-600">Administrateurs</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600">0</div>
-                      <div className="text-sm text-gray-600">Magasiniers</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-orange-600">0</div>
-                      <div className="text-sm text-gray-600">Demandeurs</div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* Postes Card */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Users className="w-5 h-5" />
+              <span>Postes</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Gestion des postes de travail</p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  className="w-full"
+                  onClick={() => setCurrentPopup("postes")}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Gérer ({postes.length})
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl">
+                <DialogHeader>
+                  <DialogTitle>Gestion des Postes</DialogTitle>
+                </DialogHeader>
+                {currentPopup === "postes" && renderEntityTab("postes")}
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
 
-        {/* Security Tab */}
-        <TabsContent value="security" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Shield className="w-5 h-5" />
-                <span>Paramètres de Sécurité</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Security Card */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Shield className="w-5 h-5" />
+              <span>Sécurité</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">Paramètres de sécurité</p>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="w-full">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Configurer
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Paramètres de Sécurité</DialogTitle>
+                </DialogHeader>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <Switch 
                       checked={systemSettings.passwordComplexity}
                       onCheckedChange={(checked) => setSystemSettings(prev => ({ ...prev, passwordComplexity: checked }))}
                     />
-                    <Label>Exiger la complexité des mots de passe</Label>
+                    <Label>Complexité des mots de passe</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch 
@@ -769,15 +647,6 @@ export default function Settings() {
                     />
                     <Label>Authentification à deux facteurs</Label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      checked={systemSettings.databaseEncryption}
-                      onCheckedChange={(checked) => setSystemSettings(prev => ({ ...prev, databaseEncryption: checked }))}
-                    />
-                    <Label>Chiffrement de la base de données</Label>
-                  </div>
-                </div>
-                <div className="space-y-4">
                   <div>
                     <Label>Timeout de session (minutes)</Label>
                     <Slider
@@ -791,167 +660,12 @@ export default function Settings() {
                     <div className="text-sm text-gray-500 mt-1">{systemSettings.sessionTimeout} minutes</div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
 
-        {/* Backup Tab */}
-        <TabsContent value="backup" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Database className="w-5 h-5" />
-                <span>Gestion des Sauvegardes</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      checked={systemSettings.autoBackupEnabled}
-                      onCheckedChange={(checked) => setSystemSettings(prev => ({ ...prev, autoBackupEnabled: checked }))}
-                    />
-                    <Label>Sauvegarde automatique</Label>
-                  </div>
-                  <div>
-                    <Label>Fréquence de sauvegarde</Label>
-                    <Select 
-                      value={systemSettings.backupFrequency} 
-                      onValueChange={(value: any) => setSystemSettings(prev => ({ ...prev, backupFrequency: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily">Quotidienne</SelectItem>
-                        <SelectItem value="weekly">Hebdomadaire</SelectItem>
-                        <SelectItem value="monthly">Mensuelle</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Rétention (jours)</Label>
-                    <Slider
-                      value={[systemSettings.backupRetentionDays]}
-                      onValueChange={([value]) => setSystemSettings(prev => ({ ...prev, backupRetentionDays: value }))}
-                      min={7}
-                      max={365}
-                      step={7}
-                      className="mt-2"
-                    />
-                    <div className="text-sm text-gray-500 mt-1">{systemSettings.backupRetentionDays} jours</div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <Button onClick={handleBackup} className="w-full">
-                    <Database className="w-4 h-4 mr-2" />
-                    Créer une sauvegarde maintenant
-                  </Button>
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Dernières sauvegardes</h4>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <div>• Aujourd'hui à 02:00 - 1.2 MB</div>
-                      <div>• Hier à 02:00 - 1.1 MB</div>
-                      <div>• Il y a 2 jours à 02:00 - 1.0 MB</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Audit Tab */}
-        <TabsContent value="audit" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Eye className="w-5 h-5" />
-                <span>Journaux d'Audit</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch 
-                  checked={systemSettings.auditLogging}
-                  onCheckedChange={(checked) => setSystemSettings(prev => ({ ...prev, auditLogging: checked }))}
-                />
-                <Label>Activer les journaux d'audit</Label>
-              </div>
-              <div>
-                <Label>Rétention des logs (jours)</Label>
-                <Slider
-                  value={[systemSettings.logRetentionDays]}
-                  onValueChange={([value]) => setSystemSettings(prev => ({ ...prev, logRetentionDays: value }))}
-                  min={30}
-                  max={365}
-                  step={30}
-                  className="mt-2"
-                />
-                <div className="text-sm text-gray-500 mt-1">{systemSettings.logRetentionDays} jours</div>
-              </div>
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Les journaux d'audit détaillés seront disponibles dans une prochaine version.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* System Tab */}
-        <TabsContent value="system" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Server className="w-5 h-5" />
-                <span>Informations Système</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-sm font-medium">Version de l'application</Label>
-                    <div className="text-lg">v2.1.0</div>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Base de données</Label>
-                    <div className="text-lg">PostgreSQL 15.x</div>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Dernière mise à jour</Label>
-                    <div className="text-lg">15 Août 2025</div>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      checked={systemSettings.barcodeScanning}
-                      onCheckedChange={(checked) => setSystemSettings(prev => ({ ...prev, barcodeScanning: checked }))}
-                    />
-                    <Label>Scanner de codes-barres</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch 
-                      checked={systemSettings.apiKeysEnabled}
-                      onCheckedChange={(checked) => setSystemSettings(prev => ({ ...prev, apiKeysEnabled: checked }))}
-                    />
-                    <Label>API Keys externes</Label>
-                  </div>
-                  <Button variant="outline" className="w-full">
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Redémarrer le système
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      </div>
 
       {/* Save Settings Button */}
       <div className="flex justify-end pt-6 border-t border-gray-200">
@@ -964,7 +678,7 @@ export default function Settings() {
           className="bg-blue-600 hover:bg-blue-700"
           data-testid="button-save-settings"
         >
-          <Settings className="w-4 h-4 mr-2" />
+          <SettingsIcon className="w-4 h-4 mr-2" />
           Sauvegarder les paramètres
         </Button>
       </div>
