@@ -76,7 +76,7 @@ export default function ArticleAutocomplete({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full min-w-[400px] p-0">
-        <Command>
+        <Command shouldFilter={false}>
           <CommandInput 
             placeholder="Tapez au moins 3 caractères pour rechercher..." 
             value={search}
@@ -91,10 +91,10 @@ export default function ArticleAutocomplete({
                   : "Aucun article trouvé."}
             </CommandEmpty>
             <CommandGroup>
-              {filteredArticles.slice(0, 10).map((article) => (
+              {filteredArticles.map((article) => (
                 <CommandItem
                   key={article.id}
-                  value={article.id}
+                  value={`${article.codeArticle}-${article.designation}`}
                   onSelect={() => {
                     onSelect(article.id, article);
                     setOpen(false);
