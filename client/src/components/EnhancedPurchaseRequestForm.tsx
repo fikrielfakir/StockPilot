@@ -312,16 +312,16 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
                         <div className="md:col-span-2 lg:col-span-1">
                           <label className="block text-sm font-medium mb-2">Fournisseur</label>
                           <Select 
-                            value={item.supplierId || ""} 
+                            value={item.supplierId || "none"} 
                             onValueChange={(value) => updateItem(item.id, { 
-                              supplierId: value || undefined 
+                              supplierId: value === "none" ? undefined : value 
                             })}
                           >
                             <SelectTrigger data-testid={`select-supplier-${index}`}>
                               <SelectValue placeholder="Sélectionner un fournisseur" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">Aucun fournisseur</SelectItem>
+                              <SelectItem value="none">Aucun fournisseur</SelectItem>
                               {suppliers.map((supplier: any) => (
                                 <SelectItem key={supplier.id} value={supplier.id}>
                                   {supplier.nom}
