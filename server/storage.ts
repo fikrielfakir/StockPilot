@@ -10,7 +10,8 @@ import {
   type Marque, type InsertMarque,
   type Departement, type InsertDepartement,
   type Poste, type InsertPoste,
-  articles, suppliers, requestors, purchaseRequests, receptions, outbounds, stockMovements, categories, marques, departements, postes
+  type PurchaseRequestItem,
+  articles, suppliers, requestors, purchaseRequests, purchaseRequestItems, receptions, outbounds, stockMovements, categories, marques, departements, postes
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
@@ -46,6 +47,7 @@ export interface IStorage {
   updatePurchaseRequest(id: string, request: Partial<PurchaseRequest>): Promise<PurchaseRequest>;
   deletePurchaseRequest(id: string): Promise<void>;
   getPurchaseRequestsReadyForReception(): Promise<PurchaseRequest[]>;
+  getPurchaseRequestItems(purchaseRequestId: string): Promise<PurchaseRequestItem[]>;
 
   // Receptions
   getReceptions(): Promise<Reception[]>;
@@ -285,6 +287,7 @@ export class MemStorage implements IStorage {
       createdAt: new Date(),
       observations: request.observations ?? null,
       statut: request.statut ?? "en_attente",
+      totalArticles: 0,
     };
     this.purchaseRequests.set(id, newRequest);
     return newRequest;
@@ -308,6 +311,11 @@ export class MemStorage implements IStorage {
     return Array.from(this.purchaseRequests.values()).filter(
       request => request.statut === "approuve"
     );
+  }
+
+  async getPurchaseRequestItems(purchaseRequestId: string): Promise<PurchaseRequestItem[]> {
+    // For in-memory implementation, return empty array for now
+    return [];
   }
 
   // Receptions
@@ -815,6 +823,13 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(purchaseRequests)
       .where(eq(purchaseRequests.statut, "approuve"));
+  }
+
+  async getPurchaseRequestItems(purchaseRequestId: string): Promise<PurchaseRequestItem[]> {
+    return await db
+      .select()
+      .from(purchaseRequestItems)
+      .where(eq(purchaseRequestItems.purchaseRequestId, purchaseRequestId));
   }
 
   // Receptions

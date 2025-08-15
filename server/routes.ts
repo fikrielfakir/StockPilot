@@ -788,9 +788,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Demande d'achat non trouvée" });
       }
       
-      const article = await storage.getArticle(purchaseRequest.articleId);
+      // Get purchase request items to access article and supplier info
+      const purchaseRequestItems = await storage.getPurchaseRequestItems(purchaseRequest.id);
+      const article = purchaseRequestItems.length > 0 ? await storage.getArticle(purchaseRequestItems[0].articleId) : null;
       const requestor = await storage.getRequestor(purchaseRequest.requestorId);
-      const supplier = purchaseRequest.supplierId ? await storage.getSupplier(purchaseRequest.supplierId) : null;
+      const supplier = purchaseRequestItems.length > 0 && purchaseRequestItems[0].supplierId ? 
+        await storage.getSupplier(purchaseRequestItems[0].supplierId) : null;
       
       res.json({
         document: "bon_commande",
