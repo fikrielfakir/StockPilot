@@ -12,6 +12,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### August 2025 - Enhanced UI and Configuration Streamlining
+- **UI Streamlining Completed**: Removed simple purchase request form, keeping only enhanced multi-article form (August 15, 2025)
+- **Settings Unification**: Successfully merged Settings and AdminSettings pages into comprehensive configuration interface (August 15, 2025)
+- **Route Optimization**: Cleaned up application routing by removing duplicate admin settings path (August 15, 2025)
+- **Enhanced Autocomplete Validation**: Fixed SelectItem errors and improved supplier selection with proper empty state handling (August 15, 2025)
+- **Full Application Documentation**: Created comprehensive APPLICATION_PROMPT.md documenting all system features and capabilities (August 15, 2025)
+
 ### August 2025 - Migration Complete & Advanced Admin Settings
 - **Migration Completed**: Successfully migrated StockCéramique from Replit Agent to standard Replit environment (August 15, 2025)
 - **Enhanced Autocomplete System**: Implemented intelligent article search with 3-character trigger for purchase requests, receptions, and outbound entries (August 15, 2025)
