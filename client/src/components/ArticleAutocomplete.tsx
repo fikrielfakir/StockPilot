@@ -26,8 +26,8 @@ export default function ArticleAutocomplete({
   const [search, setSearch] = useState("");
 
   // Use search endpoint when search term is 3+ characters
-  const { data: searchResults = [] } = useQuery<Article[]>({
-    queryKey: ["/api/articles/search", search],
+  const { data: searchResults = [], isLoading: isSearching } = useQuery<Article[]>({
+    queryKey: [`/api/articles/search?query=${encodeURIComponent(search)}`],
     enabled: search.length >= 3,
   });
 
@@ -37,6 +37,15 @@ export default function ArticleAutocomplete({
   });
 
   const filteredArticles = search.length >= 3 ? searchResults : [];
+  
+  // Debug logging
+  console.log('ArticleAutocomplete Debug:', {
+    search,
+    searchLength: search.length,
+    searchResults,
+    filteredArticles,
+    isSearching
+  });
 
   const selectedArticle = allArticles.find((article) => article.id === value);
 
@@ -75,7 +84,11 @@ export default function ArticleAutocomplete({
           />
           <CommandList>
             <CommandEmpty>
-              {search.length < 3 ? "Tapez au moins 3 caractères..." : "Aucun article trouvé."}
+              {isSearching 
+                ? "Recherche en cours..." 
+                : search.length < 3 
+                  ? "Tapez au moins 3 caractères..." 
+                  : "Aucun article trouvé."}
             </CommandEmpty>
             <CommandGroup>
               {filteredArticles.slice(0, 10).map((article) => (
