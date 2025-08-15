@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import PurchaseRequestForm from "@/components/PurchaseRequestForm";
 import EnhancedPurchaseRequestForm from "@/components/EnhancedPurchaseRequestForm";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,7 +16,6 @@ import { DocumentGenerator } from "@/components/DocumentGenerator";
 import type { PurchaseRequest } from "@shared/schema";
 
 export default function PurchaseRequests() {
-  const [showForm, setShowForm] = useState(false);
   const [showEnhancedForm, setShowEnhancedForm] = useState(false);
   const [editingRequest, setEditingRequest] = useState<PurchaseRequest | null>(null);
   const [search, setSearch] = useState("");
@@ -126,7 +124,7 @@ export default function PurchaseRequests() {
 
   const handleEdit = (request: PurchaseRequest) => {
     setEditingRequest(request);
-    setShowForm(true);
+    setShowEnhancedForm(true);
   };
 
   const handleDelete = (id: string) => {
@@ -140,7 +138,7 @@ export default function PurchaseRequests() {
   };
 
   const handleCloseForm = () => {
-    setShowForm(false);
+    setShowEnhancedForm(false);
     setEditingRequest(null);
   };
 
@@ -196,20 +194,12 @@ export default function PurchaseRequests() {
                 className="mr-2"
               />
               <Button 
-                onClick={() => setShowForm(true)}
-                className="btn-ms-blue flex items-center space-x-2 mr-2"
+                onClick={() => setShowEnhancedForm(true)}
+                className="btn-ms-blue flex items-center space-x-2"
                 data-testid="button-add-request"
               >
                 <i className="fas fa-plus"></i>
-                <span>Demande Simple</span>
-              </Button>
-              <Button 
-                onClick={() => setShowEnhancedForm(true)}
-                className="btn-ms-green flex items-center space-x-2"
-                data-testid="button-add-enhanced-request"
-              >
-                <i className="fas fa-layer-group"></i>
-                <span>Multi-Articles</span>
+                <span>Nouvelle Demande</span>
               </Button>
             </div>
           </div>
@@ -345,7 +335,7 @@ export default function PurchaseRequests() {
               <p className="text-lg font-medium">Aucune demande trouvée</p>
               <p className="text-sm">Commencez par créer une nouvelle demande d'achat</p>
               <Button 
-                onClick={() => setShowForm(true)}
+                onClick={() => setShowEnhancedForm(true)}
                 className="btn-ms-blue mt-4"
                 data-testid="button-add-first-request"
               >
@@ -356,16 +346,11 @@ export default function PurchaseRequests() {
         </CardContent>
       </Card>
 
-      {showForm && (
-        <PurchaseRequestForm 
-          request={editingRequest}
-          onClose={handleCloseForm}
-        />
-      )}
-
       {showEnhancedForm && (
         <EnhancedPurchaseRequestForm 
-          onClose={() => setShowEnhancedForm(false)}
+          isOpen={showEnhancedForm}
+          onClose={handleCloseForm}
+          editingRequest={editingRequest}
         />
       )}
     </div>
