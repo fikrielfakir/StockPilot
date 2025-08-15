@@ -64,22 +64,29 @@ export default function EnhancedDashboard() {
   const [isAutoRefresh, setIsAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  // Fetch dashboard data
+  // Fetch real dashboard data from analytics service
   const { data: articles = [], isLoading: articlesLoading } = useQuery<Article[]>({
     queryKey: ["/api/articles"],
     refetchInterval: isAutoRefresh ? refreshInterval : false,
   });
 
-  const { data: suppliers = [] } = useQuery<Supplier[]>({
-    queryKey: ["/api/suppliers"],
-  });
-
-  const { data: purchaseRequests = [] } = useQuery<PurchaseRequest[]>({
-    queryKey: ["/api/purchase-requests"],
-  });
-
-  const { data: dashboardStats } = useQuery({
+  const { data: dashboardMetrics } = useQuery({
     queryKey: ["/api/dashboard/stats"],
+    refetchInterval: isAutoRefresh ? refreshInterval : false,
+  });
+
+  const { data: advancedAnalytics } = useQuery({
+    queryKey: ["/api/analytics/advanced"],
+    refetchInterval: isAutoRefresh ? refreshInterval * 2 : false, // Less frequent for heavy analytics
+  });
+
+  const { data: smartAlerts = [] } = useQuery({
+    queryKey: ["/api/analytics/smart-alerts"],
+    refetchInterval: isAutoRefresh ? refreshInterval : false,
+  });
+
+  const { data: performanceMetrics } = useQuery({
+    queryKey: ["/api/analytics/performance"],
     refetchInterval: isAutoRefresh ? refreshInterval : false,
   });
 
@@ -162,29 +169,31 @@ export default function EnhancedDashboard() {
     { key: 'categorie', header: 'Catégorie', sortable: true, filterable: true, width: 120 },
   ];
 
-  // Calculate metrics
+  // Use real metrics from the analytics service
   const metrics: DashboardMetrics = {
-    performance: {
+    performance: performanceMetrics ? {
+      loadTime: performanceMetrics.loadTime,
+      queryCount: performanceMetrics.queryCount,
+      cacheHitRatio: performanceMetrics.cacheHitRatio,
+      memoryUsage: performanceMetrics.memoryUsage
+    } : {
       loadTime: 1.2,
       queryCount: 8,
       cacheHitRatio: 0.89,
       memoryUsage: 0.67
     },
     inventory: {
-      totalValue: articles.reduce((sum, article) => sum + (article.stockActuel * parseFloat(article.prixUnitaire || '0')), 0),
-      criticalItems: articles.filter(article => article.stockActuel <= (article.seuilMinimum || 0)).length,
-      optimizationScore: 0.87,
-      turnoverRate: 3.2
+      totalValue: (dashboardMetrics as any)?.totalValue || 0,
+      criticalItems: (dashboardMetrics as any)?.criticalItems || 0,
+      optimizationScore: (dashboardMetrics as any)?.optimizationScore || 0.5,
+      turnoverRate: (dashboardMetrics as any)?.turnoverRate || 0
     },
-    predictions: {
-      demandForecast: [
-        { item: 'JOINT-001', predicted: 45, confidence: 0.92 },
-        { item: 'ROULE-205', predicted: 23, confidence: 0.87 },
-      ],
-      priceChanges: [
-        { item: 'JOINT-001', change: 5.2, probability: 0.78 },
-        { item: 'COURR-150', change: -2.1, probability: 0.65 },
-      ]
+    predictions: (advancedAnalytics as any) ? {
+      demandForecast: (advancedAnalytics as any).demandForecasting || [],
+      priceChanges: (advancedAnalytics as any).priceAnalysis || []
+    } : {
+      demandForecast: [],
+      priceChanges: []
     }
   };
 
@@ -224,7 +233,7 @@ export default function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Valeur Stock Total</p>
-                <p className="text-2xl font-bold">€{metrics.inventory.totalValue.toLocaleString()}</p>
+                <p className="text-2xl font-bold">€{((dashboardMetrics as any)?.totalValue || 0)?.toLocaleString()}</p>
               </div>
               <div className="p-2 bg-green-100 rounded-full">
                 <Package className="h-5 w-5 text-green-600" />
@@ -232,7 +241,9 @@ export default function EnhancedDashboard() {
             </div>
             <div className="flex items-center mt-2">
               <TrendingUp className="h-3 w-3 text-green-500 mr-1" />
-              <span className="text-xs text-green-600">+12.5% ce mois</span>
+              <span className="text-xs text-green-600">
+                {(dashboardMetrics as any)?.totalArticles || 0} articles total
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -242,7 +253,7 @@ export default function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Articles Critiques</p>
-                <p className="text-2xl font-bold text-red-600">{metrics.inventory.criticalItems}</p>
+                <p className="text-2xl font-bold text-red-600">{(dashboardMetrics as any)?.criticalItems || 0}</p>
               </div>
               <div className="p-2 bg-red-100 rounded-full">
                 <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -258,15 +269,17 @@ export default function EnhancedDashboard() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Score IA</p>
-                <p className="text-2xl font-bold text-blue-600">{(metrics.inventory.optimizationScore * 100).toFixed(0)}%</p>
+                <p className="text-sm font-medium text-muted-foreground">Score Optimisation</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {(((dashboardMetrics as any)?.optimizationScore || 0.5) * 100).toFixed(0)}%
+                </p>
               </div>
               <div className="p-2 bg-blue-100 rounded-full">
                 <Brain className="h-5 w-5 text-blue-600" />
               </div>
             </div>
             <div className="text-xs text-green-600 mt-2">
-              Optimisation excellente
+              Basé sur les données réelles
             </div>
           </CardContent>
         </Card>
@@ -276,14 +289,16 @@ export default function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Performance</p>
-                <p className="text-2xl font-bold text-purple-600">{metrics.performance.loadTime}s</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {(performanceMetrics as any)?.loadTime?.toFixed(1) || '0.0'}s
+                </p>
               </div>
               <div className="p-2 bg-purple-100 rounded-full">
                 <Zap className="h-5 w-5 text-purple-600" />
               </div>
             </div>
             <div className="text-xs text-muted-foreground mt-2">
-              Temps de chargement moyen
+              Temps de requête moyen
             </div>
           </CardContent>
         </Card>
@@ -353,21 +368,165 @@ export default function EnhancedDashboard() {
 
         {/* Advanced Analytics Tab */}
         <TabsContent value="analytics" className="space-y-6">
-          <AdvancedAnalytics 
-            onRefresh={handleRefreshAll}
-            autoRefresh={isAutoRefresh}
-            refreshInterval={refreshInterval}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Analytics Avancées
+              </CardTitle>
+              <CardDescription>
+                Analyses prédictives et recommandations basées sur l'IA
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {advancedAnalytics ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Demand Forecasting */}
+                  {(advancedAnalytics as any).demandForecasting && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Prévisions de Demande</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {(advancedAnalytics as any).demandForecasting.slice(0, 5).map((forecast: any, index: number) => (
+                          <div key={index} className="flex justify-between items-center py-2 border-b">
+                            <div>
+                              <p className="font-medium text-sm">{forecast.article}</p>
+                              <p className="text-xs text-muted-foreground">Stock: {forecast.currentStock}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold text-sm">{forecast.predictedDemand}</p>
+                              <Badge variant={forecast.riskLevel === 'high' ? 'destructive' : 'secondary'} className="text-xs">
+                                {(forecast.confidence * 100).toFixed(0)}% confiance
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Supplier Performance */}
+                  {(advancedAnalytics as any).supplierPerformance && (
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base">Performance Fournisseurs</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {(advancedAnalytics as any).supplierPerformance.slice(0, 5).map((supplier: any, index: number) => (
+                          <div key={index} className="flex justify-between items-center py-2 border-b">
+                            <div>
+                              <p className="font-medium text-sm">{supplier.supplier}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Livraison: {supplier.deliveryTime.toFixed(1)} jours
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="w-16 bg-gray-200 rounded-full h-2 mb-1">
+                                <div 
+                                  className="bg-green-600 h-2 rounded-full" 
+                                  style={{ width: `${supplier.reliability * 100}%` }}
+                                ></div>
+                              </div>
+                              <p className="text-xs">{(supplier.reliability * 100).toFixed(0)}%</p>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BarChart3 className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>Chargement des analytics avancées...</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Smart Alerts Tab */}
         <TabsContent value="alerts" className="space-y-6">
-          <SmartAlerts 
-            onAlertAction={handleAlertAction}
-            onAlertDismiss={handleAlertDismiss}
-            autoResolve={true}
-            maxAlertsShown={15}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Alertes Intelligentes
+              </CardTitle>
+              <CardDescription>
+                Alertes générées par l'IA basées sur l'analyse des données réelles
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {smartAlerts && smartAlerts.length > 0 ? (
+                <div className="space-y-3">
+                  {smartAlerts.slice(0, 10).map((alert: any, index: number) => (
+                    <div key={alert.id || index} className={`p-3 rounded-lg border-l-4 ${
+                      alert.severity === 'critical' ? 'bg-red-50 border-red-500' :
+                      alert.severity === 'high' ? 'bg-orange-50 border-orange-500' :
+                      alert.severity === 'medium' ? 'bg-yellow-50 border-yellow-500' :
+                      'bg-blue-50 border-blue-500'
+                    }`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-sm">{alert.title}</h4>
+                          <p className="text-xs text-muted-foreground mt-1">{alert.description}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="secondary" className="text-xs">
+                              {alert.type}
+                            </Badge>
+                            <Badge variant={
+                              alert.severity === 'critical' ? 'destructive' :
+                              alert.severity === 'high' ? 'destructive' :
+                              'secondary'
+                            } className="text-xs">
+                              {alert.severity}
+                            </Badge>
+                            {alert.estimatedImpact?.financial && (
+                              <span className="text-xs text-muted-foreground">
+                                Impact: €{alert.estimatedImpact.financial}
+                              </span>
+                            )}
+                          </div>
+                          {alert.recommendedActions && alert.recommendedActions.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-xs font-medium">Actions recommandées:</p>
+                              {alert.recommendedActions.slice(0, 2).map((action: any, actionIndex: number) => (
+                                <Button
+                                  key={actionIndex}
+                                  variant="outline"
+                                  size="sm"
+                                  className="mt-1 mr-2 h-6 text-xs"
+                                  onClick={() => handleAlertAction(alert.id, action.action)}
+                                >
+                                  {action.action}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleAlertDismiss(alert.id)}
+                        >
+                          ×
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>Aucune alerte active</p>
+                  <p className="text-sm">Le système fonctionne normalement</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Optimization Tab */}

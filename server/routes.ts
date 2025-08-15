@@ -1,10 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { AnalyticsService } from "./analytics";
 import { insertArticleSchema, insertSupplierSchema, insertRequestorSchema, insertPurchaseRequestSchema, insertReceptionSchema, insertOutboundSchema, convertToReceptionSchema, insertCategorySchema, insertMarqueSchema, insertDepartementSchema, insertPosteSchema, insertUserSchema, insertSystemSettingSchema, insertAuditLogSchema, insertBackupLogSchema, insertCompletePurchaseRequestSchema, insertPurchaseRequestItemSchema, users, systemSettings, auditLogs, backupLogs, purchaseRequestItems, purchaseRequests } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
+
+// Initialize analytics service
+const analytics = new AnalyticsService(storage);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Articles routes
@@ -592,6 +596,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(data);
     } catch (error) {
       res.status(500).json({ message: "Erreur lors de la récupération des mouvements récents" });
+    }
+  });
+
+  // Analytics service endpoints for real-time data
+  app.get("/api/analytics/advanced", async (req, res) => {
+    try {
+      const analyticsData = await analytics.getAdvancedAnalytics();
+      res.json(analyticsData);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des analytics avancées" });
+    }
+  });
+
+  app.get("/api/analytics/smart-alerts", async (req, res) => {
+    try {
+      const alerts = await analytics.getSmartAlerts();
+      res.json(alerts);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des alertes" });
+    }
+  });
+
+  app.get("/api/analytics/performance", async (req, res) => {
+    try {
+      const performanceData = await analytics.getPerformanceMetrics();
+      res.json(performanceData);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des métriques de performance" });
     }
   });
 
