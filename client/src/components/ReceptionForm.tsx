@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { insertReceptionSchema, type Reception, type InsertReception } from "@shared/schema";
+import ArticleAutocomplete from "@/components/ArticleAutocomplete";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -115,20 +116,17 @@ export default function ReceptionForm({ reception, onClose }: ReceptionFormProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Article *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={isViewOnly}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-article">
-                          <SelectValue placeholder="Sélectionner un article" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {articles.map((article: any) => (
-                          <SelectItem key={article.id} value={article.id}>
-                            {article.codeArticle} - {article.designation}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <ArticleAutocomplete
+                        value={field.value}
+                        onSelect={(articleId, article) => {
+                          field.onChange(articleId);
+                        }}
+                        placeholder="Rechercher un article..."
+                        disabled={isViewOnly}
+                        data-testid="article-autocomplete-reception"
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { insertOutboundSchema, type InsertOutbound, type Outbound } from "@shared/schema";
+import ArticleAutocomplete from "@/components/ArticleAutocomplete";
 
 interface OutboundFormProps {
   outbound?: Outbound | null;
@@ -127,18 +128,14 @@ export default function OutboundForm({ outbound, onClose }: OutboundFormProps) {
                   <FormItem>
                     <FormLabel>Article *</FormLabel>
                     <FormControl>
-                      <Select onValueChange={field.onChange} value={field.value} data-testid="select-article">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionnez un article" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {articles.map((article: any) => (
-                            <SelectItem key={article.id} value={article.id}>
-                              {article.codeArticle} - {article.designation}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <ArticleAutocomplete
+                        value={field.value}
+                        onSelect={(articleId, article) => {
+                          field.onChange(articleId);
+                        }}
+                        placeholder="Rechercher un article..."
+                        data-testid="article-autocomplete-outbound"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

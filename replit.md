@@ -13,7 +13,9 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### August 2025 - Migration Complete & Advanced Admin Settings
-- **Migration Completed**: Successfully migrated StockCéramique from Replit Agent to standard Replit environment (August 13, 2025)
+- **Migration Completed**: Successfully migrated StockCéramique from Replit Agent to standard Replit environment (August 15, 2025)
+- **Enhanced Autocomplete System**: Implemented intelligent article search with 3-character trigger for purchase requests, receptions, and outbound entries (August 15, 2025)
+- **Multi-Article Purchase Requests**: Added comprehensive purchase request system supporting multiple articles with individual quantities, prices, and suppliers (August 15, 2025)
 - **Database Schema Migration**: Pushed complete database schema with all tables and relationships (August 13, 2025)
 - **PostgreSQL Database**: Created and configured production PostgreSQL database with Neon provider (August 13, 2025)
 - **TypeScript Issues Resolved**: Fixed all storage layer type compatibility issues for database operations (August 13, 2025)

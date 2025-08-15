@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,24 +9,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { insertCompletePurchaseRequestSchema, type CompletePurchaseRequest, articles, requestors, suppliers } from "@shared/schema";
-
-type Article = typeof articles.$inferSelect;
-type Requestor = typeof requestors.$inferSelect;
-type Supplier = typeof suppliers.$inferSelect;
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Plus, ShoppingCart } from "lucide-react";
+import ArticleAutocomplete from "@/components/ArticleAutocomplete";
+import { insertPurchaseRequestSchema, type PurchaseRequest, type InsertPurchaseRequest, type Article, type Requestor, type Supplier } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import ArticleAutocomplete from "./ArticleAutocomplete";
-import { Plus, Trash2, ShoppingCart, Package2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-
-interface EnhancedPurchaseRequestFormProps {
-  onClose: () => void;
-}
+import { z } from "zod";
 
 interface PurchaseRequestItem {
+  id: string;
   articleId: string;
   article?: Article;
   quantiteDemandee: number;
@@ -35,9 +28,25 @@ interface PurchaseRequestItem {
   observations?: string;
 }
 
-export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchaseRequestFormProps) {
+interface PurchaseRequestFormProps {
+  request?: PurchaseRequest | null;
+  onClose: () => void;
+}
+
+const purchaseRequestFormSchema = z.object({
+  requestorId: z.string().min(1, "Demandeur requis"),
+  observations: z.string().optional(),
+  statut: z.string().default("en_attente"),
+});
+
+export default function EnhancedPurchaseRequestForm({ request, onClose }: PurchaseRequestFormProps) {
   const { toast } = useToast();
-  const [selectedArticles, setSelectedArticles] = useState<{[key: string]: Article}>({});
+  const [items, setItems] = useState<PurchaseRequestItem[]>([]);
+  const isEditing = !!request;
+
+  const { data: articles = [] } = useQuery<Article[]>({
+    queryKey: ["/api/articles"],
+  });
 
   const { data: requestors = [] } = useQuery<Requestor[]>({
     queryKey: ["/api/requestors"],
@@ -48,36 +57,70 @@ export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchas
   });
 
   const form = useForm({
-    resolver: zodResolver(insertCompletePurchaseRequestSchema),
+    resolver: zodResolver(purchaseRequestFormSchema),
     defaultValues: {
-      dateDemande: new Date().toISOString().split('T')[0],
-      requestorId: "",
-      observations: "",
-      items: [
-        {
-          articleId: "",
-          quantiteDemandee: 1,
-          supplierId: "",
-          prixUnitaireEstime: undefined,
-          observations: "",
-        }
-      ],
+      requestorId: request?.requestorId || "",
+      observations: request?.observations || "",
+      statut: request?.statut || "en_attente",
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "items",
-  });
+  const addItem = () => {
+    const newItem: PurchaseRequestItem = {
+      id: Math.random().toString(36).substr(2, 9),
+      articleId: "",
+      quantiteDemandee: 1,
+      observations: "",
+    };
+    setItems([...items, newItem]);
+  };
+
+  const removeItem = (id: string) => {
+    setItems(items.filter(item => item.id !== id));
+  };
+
+  const updateItem = (id: string, updates: Partial<PurchaseRequestItem>) => {
+    setItems(items.map(item => 
+      item.id === id ? { ...item, ...updates } : item
+    ));
+  };
 
   const createMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/purchase-requests/complete", data),
+    mutationFn: async (data: any) => {
+      // Create purchase request header
+      const headerData = {
+        requestorId: data.requestorId,
+        observations: data.observations,
+        statut: data.statut,
+        totalArticles: items.length,
+      };
+      
+      const response = await apiRequest("POST", "/api/purchase-requests", headerData);
+      
+      // Create purchase request items
+      if (items.length > 0) {
+        const itemsData = items.map(item => ({
+          purchaseRequestId: response.id,
+          articleId: item.articleId,
+          quantiteDemandee: item.quantiteDemandee,
+          supplierId: item.supplierId || null,
+          prixUnitaireEstime: item.prixUnitaireEstime || null,
+          observations: item.observations || null,
+        }));
+        
+        for (const itemData of itemsData) {
+          await apiRequest("POST", "/api/purchase-request-items", itemData);
+        }
+      }
+      
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/purchase-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       toast({
         title: "Demande créée",
-        description: "La demande d'achat multi-articles a été créée avec succès",
+        description: "La demande d'achat avec articles a été créée avec succès",
       });
       onClose();
     },
@@ -91,351 +134,266 @@ export default function EnhancedPurchaseRequestForm({ onClose }: EnhancedPurchas
   });
 
   const onSubmit = (data: any) => {
-    // Validate that all articles are selected
-    const invalidItems = data.items.filter((item: any) => !item.articleId);
-    if (invalidItems.length > 0) {
+    if (items.length === 0) {
       toast({
-        title: "Articles manquants",
-        description: "Veuillez sélectionner tous les articles",
+        title: "Attention",
+        description: "Ajoutez au moins un article à la demande",
         variant: "destructive",
       });
       return;
     }
-
+    
     createMutation.mutate(data);
   };
 
-  const handleArticleSelect = (index: number, articleId: string, article: Article) => {
-    setSelectedArticles(prev => ({ ...prev, [index]: article }));
-    form.setValue(`items.${index}.articleId`, articleId);
-    
-    // Auto-fill estimated price if available
-    if (article.prixUnitaire) {
-      form.setValue(`items.${index}.prixUnitaireEstime` as any, parseFloat(article.prixUnitaire));
-    }
-  };
-
-  const addArticle = () => {
-    append({
-      articleId: "",
-      quantiteDemandee: 1,
-      supplierId: "",
-      prixUnitaireEstime: undefined,
-      observations: "",
-    });
-  };
-
-  const removeArticle = (index: number) => {
-    if (fields.length > 1) {
-      remove(index);
-      // Clean up selected articles
-      setSelectedArticles(prev => {
-        const updated = { ...prev };
-        delete updated[index];
-        // Reindex remaining articles
-        const newSelected: {[key: string]: Article} = {};
-        Object.keys(updated).forEach(key => {
-          const keyIndex = parseInt(key);
-          if (keyIndex > index) {
-            newSelected[keyIndex - 1] = updated[key];
-          } else if (keyIndex < index) {
-            newSelected[key] = updated[key];
-          }
-        });
-        return newSelected;
-      });
-    }
-  };
-
-  const totalItems = fields.reduce((sum, _, index) => {
-    const quantity = form.watch(`items.${index}.quantiteDemandee`) || 0;
-    return sum + quantity;
-  }, 0);
-
-  const estimatedTotal = fields.reduce((sum, _, index) => {
-    const quantity = form.watch(`items.${index}.quantiteDemandee`) || 0;
-    const price = form.watch(`items.${index}.prixUnitaireEstime`) || 0;
-    return sum + (quantity * price);
-  }, 0);
+  const isPending = createMutation.isPending;
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="enhanced-purchase-request-form-modal">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <ShoppingCart className="w-5 h-5" />
-            <span>Nouvelle Demande d'Achat Multi-Articles</span>
+            <span>{isEditing ? "Modifier la Demande" : "Nouvelle Demande d'Achat"}</span>
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Header Information */}
+            {/* Request Header */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Informations Générales</CardTitle>
+                <CardTitle className="text-lg">Informations de la Demande</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="dateDemande"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Date de Demande</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="requestorId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Demandeur</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un demandeur" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {requestors.map((requestor) => (
-                            <SelectItem key={requestor.id} value={requestor.id}>
-                              {requestor.prenom} {requestor.nom} - {requestor.departement}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="col-span-2">
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="observations"
+                    name="requestorId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Observations</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            {...field} 
-                            placeholder="Notes générales pour cette demande..."
-                            rows={3}
-                          />
-                        </FormControl>
+                        <FormLabel>Demandeur *</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-requestor">
+                              <SelectValue placeholder="Sélectionner un demandeur" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {requestors.map((requestor: any) => (
+                              <SelectItem key={requestor.id} value={requestor.id}>
+                                {requestor.nom} {requestor.prenom} - {requestor.departement}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="statut"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Statut</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value} disabled={!isEditing}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-status">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="en_attente">En Attente</SelectItem>
+                            <SelectItem value="approuve">Approuvé</SelectItem>
+                            <SelectItem value="refuse">Refusé</SelectItem>
+                            <SelectItem value="commande">Commandé</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="observations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observations</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Observations générales de la demande..." 
+                          {...field} 
+                          data-testid="input-observations"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
-            {/* Articles Section */}
+            {/* Articles List */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center space-x-2">
-                  <Package2 className="w-5 h-5" />
-                  <span>Articles Demandés</span>
-                  <Badge variant="secondary">{fields.length}</Badge>
-                </CardTitle>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addArticle}
-                  className="flex items-center space-x-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Ajouter Article</span>
-                </Button>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Articles Demandés</CardTitle>
+                  <Badge variant="secondary">
+                    {items.length} article{items.length !== 1 ? 's' : ''}
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {fields.map((field, index) => (
-                  <Card key={field.id} className="p-4 bg-gray-50 dark:bg-gray-800/50">
-                    <div className="flex items-start justify-between mb-4">
-                      <h4 className="font-medium flex items-center space-x-2">
-                        <Package2 className="w-4 h-4" />
-                        <span>Article #{index + 1}</span>
-                      </h4>
-                      {fields.length > 1 && (
+                {items.map((item, index) => (
+                  <Card key={item.id} className="border-l-4 border-l-blue-500">
+                    <CardContent className="pt-4">
+                      <div className="flex items-start justify-between mb-4">
+                        <h4 className="font-medium">Article #{index + 1}</h4>
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          onClick={() => removeArticle(index)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => removeItem(item.id)}
+                          className="text-red-600 hover:text-red-700"
+                          data-testid={`remove-item-${index}`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.articleId`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Article *</FormLabel>
-                              <FormControl>
-                                <ArticleAutocomplete
-                                  value={field.value}
-                                  onSelect={(articleId, article) => handleArticleSelect(index, articleId, article)}
-                                  placeholder="Rechercher et sélectionner un article..."
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
                       </div>
 
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.quantiteDemandee`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Quantité Demandée *</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                min="1"
-                                {...field}
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="md:col-span-2 lg:col-span-1">
+                          <label className="block text-sm font-medium mb-2">Article *</label>
+                          <ArticleAutocomplete
+                            value={item.articleId}
+                            onSelect={(articleId, article) => {
+                              updateItem(item.id, { 
+                                articleId, 
+                                article,
+                                supplierId: article.fournisseurId || undefined 
+                              });
+                            }}
+                            placeholder="Rechercher un article..."
+                            data-testid={`article-autocomplete-${index}`}
+                          />
+                        </div>
 
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.prixUnitaireEstime`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Prix Unitaire Estimé</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                placeholder="0.00"
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Quantité *</label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={item.quantiteDemandee}
+                            onChange={(e) => updateItem(item.id, { 
+                              quantiteDemandee: parseInt(e.target.value) || 1 
+                            })}
+                            data-testid={`input-quantity-${index}`}
+                          />
+                        </div>
 
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.supplierId`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Fournisseur Préféré</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Sélectionner un fournisseur" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="none">Aucune préférence</SelectItem>
-                                {suppliers.map((supplier) => (
-                                  <SelectItem key={supplier.id} value={supplier.id}>
-                                    {supplier.nom}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Prix estimé</label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={item.prixUnitaireEstime || ""}
+                            onChange={(e) => updateItem(item.id, { 
+                              prixUnitaireEstime: parseFloat(e.target.value) || undefined 
+                            })}
+                            data-testid={`input-price-${index}`}
+                          />
+                        </div>
 
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.observations`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Notes sur cet article</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                placeholder="Notes spécifiques à cet article..."
-                                rows={2}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                        <div className="md:col-span-2 lg:col-span-1">
+                          <label className="block text-sm font-medium mb-2">Fournisseur</label>
+                          <Select 
+                            value={item.supplierId || ""} 
+                            onValueChange={(value) => updateItem(item.id, { 
+                              supplierId: value || undefined 
+                            })}
+                          >
+                            <SelectTrigger data-testid={`select-supplier-${index}`}>
+                              <SelectValue placeholder="Sélectionner un fournisseur" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="">Aucun fournisseur</SelectItem>
+                              {suppliers.map((supplier: any) => (
+                                <SelectItem key={supplier.id} value={supplier.id}>
+                                  {supplier.nom}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                    {/* Article Summary */}
-                    {selectedArticles[index] && (
-                      <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <div className="flex items-center justify-between text-sm">
-                          <div>
-                            <span className="font-medium">{selectedArticles[index].designation}</span>
-                            <span className="text-gray-600 ml-2">
-                              Stock disponible: {selectedArticles[index].stockActuel}
-                            </span>
-                          </div>
-                          {form.watch(`items.${index}.prixUnitaireEstime`) && (
-                            <div className="text-blue-700 dark:text-blue-300 font-medium">
-                              Total estimé: {(
-                                (form.watch(`items.${index}.quantiteDemandee`) || 0) *
-                                (form.watch(`items.${index}.prixUnitaireEstime`) || 0)
-                              ).toFixed(2)}€
-                            </div>
-                          )}
+                        <div className="md:col-span-2">
+                          <label className="block text-sm font-medium mb-2">Observations</label>
+                          <Textarea
+                            placeholder="Observations spécifiques à cet article..."
+                            value={item.observations || ""}
+                            onChange={(e) => updateItem(item.id, { 
+                              observations: e.target.value 
+                            })}
+                            rows={2}
+                            data-testid={`input-item-observations-${index}`}
+                          />
                         </div>
                       </div>
-                    )}
+
+                      {item.article && (
+                        <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="flex items-center justify-between text-sm">
+                            <div>
+                              <span className="font-medium">{item.article.designation}</span>
+                              <span className="text-gray-500 ml-2">Réf: {item.article.reference}</span>
+                            </div>
+                            <div className="text-right">
+                              <div>Stock actuel: <span className="font-medium">{item.article.stockActuel}</span></div>
+                              {item.article.prixUnitaire && (
+                                <div>Prix: <span className="font-medium">{item.article.prixUnitaire}€</span></div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
                   </Card>
                 ))}
 
-                {/* Summary */}
-                <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <span className="font-medium">Résumé de la demande:</span>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {fields.length} article(s) • {totalItems} unité(s) au total
-                      </div>
-                    </div>
-                    {estimatedTotal > 0 && (
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
-                          {estimatedTotal.toFixed(2)}€
-                        </div>
-                        <div className="text-xs text-gray-500">Total estimé</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addItem}
+                  className="w-full border-dashed"
+                  data-testid="add-article-button"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Ajouter un Article
+                </Button>
               </CardContent>
             </Card>
 
-            {/* Submit Actions */}
-            <div className="flex justify-end space-x-3 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={onClose}>
+            {/* Form Actions */}
+            <div className="flex justify-end space-x-3">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                data-testid="button-cancel"
+              >
                 Annuler
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Création..." : "Créer la Demande"}
+              <Button 
+                type="submit" 
+                disabled={isPending || items.length === 0}
+                data-testid="button-submit"
+              >
+                {isPending ? "Création..." : (isEditing ? "Modifier" : "Créer la Demande")}
               </Button>
             </div>
           </form>

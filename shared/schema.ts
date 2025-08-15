@@ -224,6 +224,28 @@ export const insertOutboundSchema = createInsertSchema(outbounds).omit({
   dateSortie: z.string().transform((str) => new Date(str)),
 });
 
+// Type exports
+export type Article = typeof articles.$inferSelect;
+export type Supplier = typeof suppliers.$inferSelect;
+export type Requestor = typeof requestors.$inferSelect;
+export type PurchaseRequest = typeof purchaseRequests.$inferSelect;
+export type PurchaseRequestItem = typeof purchaseRequestItems.$inferSelect;
+export type Reception = typeof receptions.$inferSelect;
+export type Outbound = typeof outbounds.$inferSelect;
+export type StockMovement = typeof stockMovements.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type SystemSetting = typeof systemSettings.$inferSelect;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type BackupLog = typeof backupLogs.$inferSelect;
+
+export type InsertArticle = z.infer<typeof insertArticleSchema>;
+export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+export type InsertRequestor = z.infer<typeof insertRequestorSchema>;
+export type InsertPurchaseRequest = z.infer<typeof insertPurchaseRequestSchema>;
+export type InsertPurchaseRequestItem = z.infer<typeof insertPurchaseRequestItemSchema>;
+export type InsertReception = z.infer<typeof insertReceptionSchema>;
+export type InsertOutbound = z.infer<typeof insertOutboundSchema>;
+
 export const insertStockMovementSchema = createInsertSchema(stockMovements).omit({
   id: true,
 });

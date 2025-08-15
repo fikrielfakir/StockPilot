@@ -358,6 +358,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Purchase Request Items routes
+  app.post("/api/purchase-request-items", async (req, res) => {
+    try {
+      const validatedData = insertPurchaseRequestItemSchema.parse(req.body);
+      const item = await db.insert(purchaseRequestItems).values({
+        id: randomUUID(),
+        ...validatedData,
+        prixUnitaireEstime: validatedData.prixUnitaireEstime?.toString() || null,
+      }).returning();
+      res.status(201).json(item[0]);
+    } catch (error) {
+      res.status(400).json({ message: "Données invalides", error });
+    }
+  });
+
+  app.get("/api/purchase-request-items/:purchaseRequestId", async (req, res) => {
+    try {
+      const items = await db.select()
+        .from(purchaseRequestItems)
+        .where(eq(purchaseRequestItems.purchaseRequestId, req.params.purchaseRequestId));
+      res.json(items);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la récupération des éléments" });
+    }
+  });
+
   // Create complete purchase request with multiple articles
   app.post("/api/purchase-requests/complete", async (req, res) => {
     try {
@@ -384,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         articleId: item.articleId,
         quantiteDemandee: item.quantiteDemandee,
         supplierId: item.supplierId || null,
-        prixUnitaireEstime: item.prixUnitaireEstime || null,
+        prixUnitaireEstime: item.prixUnitaireEstime?.toString() || null,
         observations: item.observations || null,
       }));
       
@@ -434,10 +460,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create reception from purchase request
+      // Note: Legacy purchase requests might have articleId directly, new ones use items
       const receptionData = {
-        articleId: purchaseRequest.articleId,
-        supplierId: purchaseRequest.supplierId || "",
-        quantiteRecue: quantiteRecue || purchaseRequest.quantiteDemandee,
+        articleId: (purchaseRequest as any).articleId || "", // Legacy support
+        supplierId: (purchaseRequest as any).supplierId || "",
+        quantiteRecue: quantiteRecue || (purchaseRequest as any).quantiteDemandee || 1,
         prixUnitaire: prixUnitaire || null,
         numeroBonLivraison: numeroBonLivraison || null,
         observations: observations || `Réception pour demande d'achat ${purchaseRequestId}`,

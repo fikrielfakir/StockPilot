@@ -31,6 +31,8 @@ export default function ArticleAutocomplete({
 
   const filteredArticles = articles.filter((article) => {
     if (!article || typeof search !== 'string') return false;
+    // Only start filtering after 3 characters
+    if (search.length < 3) return false;
     const searchLower = search.toLowerCase();
     return (
       (article.designation || '').toLowerCase().includes(searchLower) ||
@@ -71,12 +73,14 @@ export default function ArticleAutocomplete({
       <PopoverContent className="w-full min-w-[400px] p-0">
         <Command>
           <CommandInput 
-            placeholder="Tapez pour rechercher..." 
+            placeholder="Tapez au moins 3 caractères pour rechercher..." 
             value={search}
             onValueChange={setSearch}
           />
           <CommandList>
-            <CommandEmpty>Aucun article trouvé.</CommandEmpty>
+            <CommandEmpty>
+              {search.length < 3 ? "Tapez au moins 3 caractères..." : "Aucun article trouvé."}
+            </CommandEmpty>
             <CommandGroup>
               {filteredArticles.slice(0, 10).map((article) => (
                 <CommandItem
