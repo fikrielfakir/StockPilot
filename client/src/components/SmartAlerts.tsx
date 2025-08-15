@@ -372,7 +372,7 @@ export function SmartAlerts({
                           <Clock className="h-3 w-3" />
                           {getTimeAgo(alert.timestamp)}
                         </span>
-                        <span>Impact: €{alert.estimatedImpact.financial}</span>
+                        <span>Impact: {alert.estimatedImpact.financial} MAD</span>
                         <span>Confiance: {(alert.metadata.confidence * 100).toFixed(0)}%</span>
                       </div>
                     </div>

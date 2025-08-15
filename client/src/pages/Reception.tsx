@@ -116,7 +116,7 @@ export default function ReceptionPage() {
                   { key: 'supplierId', label: 'Fournisseur', format: (val) => getSupplierName(val) },
                   { key: 'articleId', label: 'Article', format: (val) => getArticleName(val) },
                   { key: 'quantiteRecue', label: 'Quantité Reçue', format: (val) => val?.toString() || '0' },
-                  { key: 'prixUnitaire', label: 'Prix Unitaire (€)', format: (val) => val ? `${val} €` : 'N/A' },
+                  { key: 'prixUnitaire', label: 'Prix Unitaire (MAD)', format: (val) => val ? `${val} MAD` : 'N/A' },
                   { key: 'numeroBonLivraison', label: 'N° Bon Livraison' },
                 ]}
                 className="mr-2"
@@ -173,7 +173,7 @@ export default function ReceptionPage() {
                       <td className="p-4 text-sm text-ms-gray-dark">{getArticleName(reception.articleId)}</td>
                       <td className="p-4 text-sm font-medium text-ms-gray-dark">{reception.quantiteRecue}</td>
                       <td className="p-4 text-sm text-ms-gray">
-                        {reception.prixUnitaire ? `€${reception.prixUnitaire}` : '-'}
+                        {reception.prixUnitaire ? `${reception.prixUnitaire} MAD` : '-'}
                       </td>
                       <td className="p-4 text-sm text-ms-gray">{reception.numeroBonLivraison || '-'}</td>
                       <td className="p-4">

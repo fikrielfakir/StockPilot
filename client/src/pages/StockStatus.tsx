@@ -199,12 +199,12 @@ export default function StockStatus() {
           {article.prixUnitaire && (
             <div>
               <span className="text-gray-600">Prix unitaire:</span>
-              <p className="font-medium">{parseFloat(article.prixUnitaire).toFixed(2)} €</p>
+              <p className="font-medium">{parseFloat(article.prixUnitaire).toFixed(2)} MAD</p>
             </div>
           )}
           <div>
             <span className="text-gray-600">Valeur stock:</span>
-            <p className="font-medium">{article.stockValue.toFixed(2)} €</p>
+            <p className="font-medium">{article.stockValue.toFixed(2)} MAD</p>
           </div>
           <div>
             <span className="text-gray-600">Dernière MAJ:</span>

@@ -158,12 +158,14 @@ function EntityForm({ entity, onSubmit, onCancel, schema, fields }: EntityFormPr
                 <SelectValue placeholder="Sélectionner un département" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucun département</SelectItem>
-                {departements.map((dept: any) => (
+                {departements.filter((dept: any) => dept?.id && dept?.nom).map((dept: any) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.nom}
                   </SelectItem>
                 ))}
+                {departements.length === 0 && (
+                  <SelectItem value="no-departments" disabled>Aucun département disponible</SelectItem>
+                )}
               </SelectContent>
             </Select>
           )}
@@ -950,6 +952,22 @@ export default function Settings() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Save Settings Button */}
+      <div className="flex justify-end pt-6 border-t border-gray-200">
+        <Button 
+          onClick={() => {
+            // Save system settings
+            localStorage.setItem('systemSettings', JSON.stringify(systemSettings));
+            toast({ title: "Paramètres sauvegardés avec succès" });
+          }}
+          className="bg-blue-600 hover:bg-blue-700"
+          data-testid="button-save-settings"
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Sauvegarder les paramètres
+        </Button>
+      </div>
 
       {/* Entity Form Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>

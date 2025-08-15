@@ -164,7 +164,7 @@ export default function EnhancedDashboard() {
       header: 'Prix', 
       sortable: true, 
       width: 100,
-      render: (item: Article) => `€${parseFloat(item.prixUnitaire || '0')?.toFixed(2) || '0.00'}`
+      render: (item: Article) => `${parseFloat(item.prixUnitaire || '0')?.toFixed(2) || '0.00'} MAD`
     },
     { key: 'categorie', header: 'Catégorie', sortable: true, filterable: true, width: 120 },
   ];
@@ -233,7 +233,7 @@ export default function EnhancedDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Valeur Stock Total</p>
-                <p className="text-2xl font-bold">€{((dashboardMetrics as any)?.stockValue || 0)?.toLocaleString('fr-FR')}</p>
+                <p className="text-2xl font-bold">{((dashboardMetrics as any)?.stockValue || 0)?.toLocaleString('fr-MA')} MAD</p>
               </div>
               <div className="p-2 bg-green-100 rounded-full">
                 <Package className="h-5 w-5 text-green-600" />
@@ -485,7 +485,7 @@ export default function EnhancedDashboard() {
                             </Badge>
                             {alert.estimatedImpact?.financial && (
                               <span className="text-xs text-muted-foreground">
-                                Impact: €{alert.estimatedImpact.financial}
+                                Impact: {alert.estimatedImpact.financial} MAD
                               </span>
                             )}
                           </div>
