@@ -21,6 +21,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Articles search endpoint for autocomplete
+  app.get("/api/articles/search", async (req, res) => {
+    try {
+      const { query } = req.query;
+      const articles = await storage.getArticles();
+      
+      if (!query || typeof query !== 'string' || query.length < 3) {
+        return res.json([]);
+      }
+      
+      const filtered = articles.filter(article => 
+        article.designation.toLowerCase().includes(query.toLowerCase()) ||
+        article.codeArticle.toLowerCase().includes(query.toLowerCase()) ||
+        (article.reference && article.reference.toLowerCase().includes(query.toLowerCase())) ||
+        article.categorie.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 10); // Limit to 10 results
+      
+      res.json(filtered);
+    } catch (error) {
+      res.status(500).json({ message: "Erreur lors de la recherche d'articles" });
+    }
+  });
+
   app.get("/api/articles/:id", async (req, res) => {
     try {
       const article = await storage.getArticle(req.params.id);

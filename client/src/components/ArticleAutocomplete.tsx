@@ -25,24 +25,20 @@ export default function ArticleAutocomplete({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const { data: articles = [] } = useQuery<Article[]>({
+  // Use search endpoint when search term is 3+ characters
+  const { data: searchResults = [] } = useQuery<Article[]>({
+    queryKey: ["/api/articles/search", search],
+    enabled: search.length >= 3,
+  });
+
+  // Fallback to all articles for initial load and selection display
+  const { data: allArticles = [] } = useQuery<Article[]>({
     queryKey: ["/api/articles"],
   });
 
-  const filteredArticles = articles.filter((article) => {
-    if (!article || typeof search !== 'string') return false;
-    // Only start filtering after 3 characters
-    if (search.length < 3) return false;
-    const searchLower = search.toLowerCase();
-    return (
-      (article.designation || '').toLowerCase().includes(searchLower) ||
-      (article.reference || '').toLowerCase().includes(searchLower) ||
-      (article.codeArticle || '').toLowerCase().includes(searchLower) ||
-      (article.categorie || '').toLowerCase().includes(searchLower)
-    );
-  });
+  const filteredArticles = search.length >= 3 ? searchResults : [];
 
-  const selectedArticle = articles.find((article) => article.id === value);
+  const selectedArticle = allArticles.find((article) => article.id === value);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

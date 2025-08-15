@@ -96,11 +96,12 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
       };
       
       const response = await apiRequest("POST", "/api/purchase-requests", headerData);
+      const purchaseRequest = await response.json();
       
       // Create purchase request items
       if (items.length > 0) {
         const itemsData = items.map(item => ({
-          purchaseRequestId: response.id,
+          purchaseRequestId: purchaseRequest.id,
           articleId: item.articleId,
           quantiteDemandee: item.quantiteDemandee,
           supplierId: item.supplierId || null,
