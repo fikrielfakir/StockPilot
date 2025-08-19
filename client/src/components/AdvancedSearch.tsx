@@ -249,11 +249,11 @@ export default function AdvancedSearch({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous prix</SelectItem>
-                    <SelectItem value="0-10">0€ - 10€</SelectItem>
-                    <SelectItem value="10-50">10€ - 50€</SelectItem>
-                    <SelectItem value="50-100">50€ - 100€</SelectItem>
-                    <SelectItem value="100-500">100€ - 500€</SelectItem>
-                    <SelectItem value="500+">500€+</SelectItem>
+                    <SelectItem value="0-10">0 MAD - 10 MAD</SelectItem>
+                    <SelectItem value="10-50">10 MAD - 50 MAD</SelectItem>
+                    <SelectItem value="50-100">50 MAD - 100 MAD</SelectItem>
+                    <SelectItem value="100-500">100 MAD - 500 MAD</SelectItem>
+                    <SelectItem value="500+">500+ MAD</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

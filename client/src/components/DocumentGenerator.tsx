@@ -110,7 +110,7 @@ export function DocumentGenerator({ type, entityId, className = "" }: DocumentGe
           [`Article:`, article?.designation || 'N/A'],
           [`Code Article:`, article?.codeArticle || 'N/A'],
           [`Quantité reçue:`, reception.quantiteRecue?.toString() || 'N/A'],
-          [`Prix unitaire:`, reception.prixUnitaire ? `${reception.prixUnitaire} €` : 'N/A'],
+          [`Prix unitaire:`, reception.prixUnitaire ? `${reception.prixUnitaire} MAD` : 'N/A'],
           [`Fournisseur:`, supplier?.nom || 'N/A'],
           [`N° Bon de livraison:`, reception.numeroBonLivraison || 'N/A'],
           [`Date de réception:`, new Date(reception.dateReception).toLocaleDateString('fr-FR') || 'N/A'],

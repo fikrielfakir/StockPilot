@@ -191,7 +191,7 @@ export default function PredictiveAnalytics({
         articleId: article.id,
         articleName: article.designation,
         severity: 'medium' as const,
-        message: `Prix élevé détecté: ${article.prixUnitaire}€`,
+        message: `Prix élevé détecté: ${article.prixUnitaire} MAD`,
         recommendation: 'Rechercher des fournisseurs alternatifs'
       }));
   };

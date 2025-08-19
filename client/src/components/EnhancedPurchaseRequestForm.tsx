@@ -335,11 +335,11 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium mb-2">Prix estimé</label>
+                          <label className="block text-sm font-medium mb-2">Prix estimé (MAD)</label>
                           <Input
                             type="number"
                             step="0.01"
-                            placeholder="0.00"
+                            placeholder="0.00 MAD"
                             value={item.prixUnitaireEstime || ""}
                             onChange={(e) => updateItem(item.id, { 
                               prixUnitaireEstime: parseFloat(e.target.value) || undefined 
@@ -394,7 +394,7 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
                             <div className="text-right">
                               <div>Stock actuel: <span className="font-medium">{item.article.stockActuel}</span></div>
                               {item.article.prixUnitaire && (
-                                <div>Prix: <span className="font-medium">{item.article.prixUnitaire}€</span></div>
+                                <div>Prix: <span className="font-medium">{item.article.prixUnitaire} MAD</span></div>
                               )}
                             </div>
                           </div>

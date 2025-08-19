@@ -435,7 +435,7 @@ export function SmartAlerts({
               <div>
                 <p className="text-sm text-muted-foreground">Impact total</p>
                 <p className="text-lg font-bold text-orange-600">
-                  €{filteredAlerts.reduce((sum, a) => sum + a.estimatedImpact.financial, 0).toLocaleString()}
+                  {filteredAlerts.reduce((sum, a) => sum + a.estimatedImpact.financial, 0).toLocaleString()} MAD
                 </p>
               </div>
               <div>
