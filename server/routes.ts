@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { AnalyticsService } from "./analytics";
 import { insertArticleSchema, insertSupplierSchema, insertRequestorSchema, insertPurchaseRequestSchema, insertReceptionSchema, insertOutboundSchema, convertToReceptionSchema, insertCategorySchema, insertMarqueSchema, insertDepartementSchema, insertPosteSchema, insertUserSchema, insertSystemSettingSchema, insertAuditLogSchema, insertBackupLogSchema, insertCompletePurchaseRequestSchema, insertPurchaseRequestItemSchema, users, systemSettings, auditLogs, backupLogs, purchaseRequestItems, purchaseRequests } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // Initialize analytics service
@@ -484,7 +484,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/purchase-requests", async (req, res) => {
     try {
       const validatedData = insertPurchaseRequestSchema.parse(req.body);
-      const request = await storage.createPurchaseRequest(validatedData);
+      
+      // Create purchase request directly in database
+      const [request] = await db.insert(purchaseRequests).values({
+        id: randomUUID(),
+        ...validatedData,
+        dateInitiation: new Date(),
+        totalArticles: 0, // Will be updated when items are added
+        statut: validatedData.statut || "en_attente",
+        observations: validatedData.observations || null,
+      }).returning();
+      
       res.status(201).json(request);
     } catch (error) {
       res.status(400).json({ message: "Données invalides", error });
@@ -527,6 +537,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         prixUnitaireEstime: validatedData.prixUnitaireEstime?.toString() || null,
       }).returning();
+
+      // Update totalArticles count in the parent purchase request
+      const [itemCount] = await db.select({ count: count() })
+        .from(purchaseRequestItems)
+        .where(eq(purchaseRequestItems.purchaseRequestId, validatedData.purchaseRequestId));
+      
+      await db.update(purchaseRequests)
+        .set({ totalArticles: itemCount.count })
+        .where(eq(purchaseRequests.id, validatedData.purchaseRequestId));
+
       res.status(201).json(item[0]);
     } catch (error) {
       res.status(400).json({ message: "Données invalides", error });
