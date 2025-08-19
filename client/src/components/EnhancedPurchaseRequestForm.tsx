@@ -107,9 +107,10 @@ export default function EnhancedPurchaseRequestForm({ request, onClose }: Purcha
       
       // Create purchase request header
       const headerData = {
+        dateDemande: new Date().toISOString(),
         requestorId: data.requestorId,
         observations: data.observations,
-        statut: data.statut,
+        statut: data.statut || "en_attente",
         totalArticles: items.length,
       };
       
