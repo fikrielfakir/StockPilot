@@ -1,6 +1,40 @@
 const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
+const { spawn } = require('child_process');
 const isDev = process.env.NODE_ENV === 'development';
+
+// Start the local server
+let serverProcess = null;
+
+function startServer() {
+  const serverPath = isDev 
+    ? path.join(__dirname, '../server/index-desktop.ts')
+    : path.join(process.resourcesPath, 'server/index-desktop.js');
+    
+  const serverArgs = isDev ? ['tsx', serverPath] : ['node', serverPath];
+  
+  console.log('Starting server:', serverArgs.join(' '));
+  
+  serverProcess = spawn(serverArgs[0], serverArgs.slice(1), {
+    env: { 
+      ...process.env, 
+      NODE_ENV: isDev ? 'development' : 'production',
+      DESKTOP_PORT: '3001'
+    }
+  });
+  
+  serverProcess.stdout.on('data', (data) => {
+    console.log('Server:', data.toString());
+  });
+  
+  serverProcess.stderr.on('data', (data) => {
+    console.error('Server Error:', data.toString());
+  });
+  
+  serverProcess.on('close', (code) => {
+    console.log('Server process exited with code', code);
+  });
+}
 
 // Keep a global reference of the window object
 let mainWindow;
@@ -89,10 +123,10 @@ function createWindow() {
 
   // Load the app
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL('http://localhost:3001');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    mainWindow.loadURL('http://127.0.0.1:3001');
   }
 
   // Show window when ready to prevent visual flash
@@ -113,9 +147,17 @@ function createWindow() {
 }
 
 // App event listeners
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  startServer();
+  // Wait a moment for server to start
+  setTimeout(createWindow, 2000);
+});
 
 app.on('window-all-closed', () => {
+  // Kill server process
+  if (serverProcess) {
+    serverProcess.kill();
+  }
   if (process.platform !== 'darwin') {
     app.quit();
   }
@@ -132,7 +174,7 @@ app.on('web-contents-created', (event, contents) => {
   contents.on('will-navigate', (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
     
-    if (parsedUrl.origin !== 'http://localhost:5173' && parsedUrl.origin !== 'file://') {
+    if (parsedUrl.origin !== 'http://127.0.0.1:3001' && parsedUrl.origin !== 'file://') {
       event.preventDefault();
     }
   });

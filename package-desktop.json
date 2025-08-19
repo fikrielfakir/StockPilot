@@ -29,12 +29,15 @@
     },
     "files": [
       "dist/**/*",
-      "dist-desktop/**/*",
       "electron/**/*",
-      "node_modules/**/*",
       "package.json"
     ],
     "extraResources": [
+      {
+        "from": "dist-desktop",
+        "to": "server",
+        "filter": ["**/*"]
+      },
       {
         "from": "data",
         "to": "data",
