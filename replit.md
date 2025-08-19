@@ -6,6 +6,15 @@ StockCéramique is a comprehensive inventory management system for ceramic spare
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (August 19, 2025)
+**Desktop Conversion Completed**: Successfully converted the web application to a Windows desktop .exe with local SQLite database storage. Key additions include:
+- Electron-based desktop application wrapper
+- SQLite database integration with automatic schema creation
+- Local-only server running on port 3001
+- Complete offline operation capability
+- Windows installer build process (.exe generation)
+- Desktop-specific configurations and build scripts
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -26,8 +35,10 @@ Preferred communication style: Simple, everyday language.
 - **Validation**: Zod schemas shared between client and server
 
 ### Data Storage
-- **Primary Database**: PostgreSQL with connection pooling
+- **Primary Database**: PostgreSQL with connection pooling (Web version)
+- **Desktop Database**: SQLite for local offline storage
 - **Schema Management**: Drizzle Kit for migrations and schema management
+- **Dual Database Support**: Web version uses PostgreSQL, desktop version uses SQLite with identical schema
 
 ### Core Entities and Relationships
 - **Articles**: Spare parts inventory with stock tracking, pricing, and supplier relationships
@@ -57,6 +68,8 @@ RESTful API with consistent endpoint patterns for CRUD operations, dashboard sta
 - **UI/UX Decisions**: Microsoft-inspired design, responsive design with Tailwind CSS, Shadcn/ui components, improved status visualization with dark mode support.
 - **PWA Enhancement**: Offline support, background sync, push notifications, and intelligent caching strategies via service worker.
 - **Global Optimization**: Keyboard shortcuts and toast notifications integrated application-wide.
+- **Desktop Application**: Windows .exe version with Electron wrapper and local SQLite database for complete offline operation.
+- **Cross-Platform Ready**: Desktop build system supports Windows, macOS, and Linux distributions.
 
 ## External Dependencies
 
