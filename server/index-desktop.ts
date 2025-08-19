@@ -104,7 +104,20 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Serve static files for production
+if (process.env.NODE_ENV === 'production') {
+  const clientPath = path.join(__dirname, '../dist');
+  app.use(express.static(clientPath));
+  
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(clientPath, 'index.html'));
+    }
+  });
+}
+
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`🖥️  Desktop server running on http://127.0.0.1:${PORT}`);
-  console.log(`📁 Database path: ${process.env.NODE_ENV === 'development' ? './data/stockceramique.db' : 'User data directory'}`);
+  console.log(`📁 Database path: ${sqlite3.name}`);
+  console.log(`🚀 Mode: ${process.env.NODE_ENV || 'development'}`);
 });
