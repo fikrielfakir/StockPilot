@@ -3,17 +3,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import ReceptionForm from "@/components/ReceptionForm";
-import { ConvertToReceptionDialog } from "@/components/ConvertToReceptionDialog";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ExportButton } from "@/components/ExportButton";
 import { DocumentGenerator } from "@/components/DocumentGenerator";
-import { Package2, ShoppingCart, Calendar } from "lucide-react";
-import type { Reception, PurchaseRequest, Requestor } from "@shared/schema";
+import type { Reception } from "@shared/schema";
 
 export default function ReceptionPage() {
   const [showForm, setShowForm] = useState(false);
@@ -33,20 +29,7 @@ export default function ReceptionPage() {
     queryKey: ["/api/suppliers"],
   });
 
-  // Fetch purchase requests for conversion
-  const { data: purchaseRequests = [] } = useQuery<PurchaseRequest[]>({
-    queryKey: ["/api/purchase-requests"],
-  });
 
-  // Fetch requestors for purchase request details
-  const { data: requestors = [] } = useQuery<Requestor[]>({
-    queryKey: ["/api/requestors"],
-  });
-
-  // Filter purchase requests that can be converted (approved or ordered status)
-  const convertibleRequests = purchaseRequests.filter(pr => 
-    pr.statut === "approuve" || pr.statut === "commande"
-  );
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => apiRequest("DELETE", `/api/receptions/${id}`),
@@ -89,23 +72,7 @@ export default function ReceptionPage() {
     return supplier?.nom || "Fournisseur inconnu";
   };
 
-  const getRequestorName = (requestorId: string) => {
-    const requestor = requestors.find((r: any) => r.id === requestorId);
-    return requestor ? `${requestor.prenom} ${requestor.nom}` : "Demandeur inconnu";
-  };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      "en_attente": { label: "En attente", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
-      "approuve": { label: "Approuvé", className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
-      "refuse": { label: "Refusé", className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200" },
-      "commande": { label: "Commandé", className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
-      "recu": { label: "Reçu", className: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200" }
-    };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig["en_attente"];
-    return <Badge className={config.className}>{config.label}</Badge>;
-  };
 
   const handleEdit = (reception: Reception) => {
     setEditingReception(reception);
@@ -139,24 +106,7 @@ export default function ReceptionPage() {
 
   return (
     <div className="space-y-6" data-testid="reception-page">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Réception de Marchandises</h1>
-      </div>
-
-      <Tabs defaultValue="receptions" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="receptions" className="flex items-center gap-2">
-            <Package2 className="h-4 w-4" />
-            Réceptions ({receptions.length})
-          </TabsTrigger>
-          <TabsTrigger value="purchase-requests" className="flex items-center gap-2">
-            <ShoppingCart className="h-4 w-4" />
-            Demandes d'achat ({convertibleRequests.length})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="receptions" className="space-y-6">
-          <Card>
+      <Card>
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-semibold text-ms-gray-dark">Réception de Marchandises</h3>
@@ -270,85 +220,7 @@ export default function ReceptionPage() {
             </div>
           )}
         </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="purchase-requests" className="space-y-6">
-          <Card>
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Demandes d'achat à convertir</h3>
-                <div className="text-sm text-gray-500">
-                  {convertibleRequests.length} demande(s) éligible(s) pour conversion
-                </div>
-              </div>
-            </div>
-
-            <CardContent className="p-0">
-              {convertibleRequests.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-800">
-                      <tr>
-                        <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Date</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Demandeur</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Articles</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Statut</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Observations</th>
-                        <th className="text-left p-4 text-sm font-medium text-gray-700 dark:text-gray-300">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {convertibleRequests.map((request) => (
-                        <tr key={request.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <td className="p-4 text-sm text-gray-900 dark:text-gray-100">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-gray-400" />
-                              {new Date(request.dateDemande).toLocaleDateString('fr-FR')}
-                            </div>
-                          </td>
-                          <td className="p-4 text-sm text-gray-900 dark:text-gray-100">
-                            {getRequestorName(request.requestorId)}
-                          </td>
-                          <td className="p-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {request.totalArticles} article(s)
-                          </td>
-                          <td className="p-4">
-                            {getStatusBadge(request.statut)}
-                          </td>
-                          <td className="p-4 text-sm text-gray-600 dark:text-gray-400 max-w-xs">
-                            <div className="truncate">
-                              {request.observations || "-"}
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <ConvertToReceptionDialog purchaseRequest={request}>
-                              <Button
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-700 text-white"
-                                data-testid={`button-convert-${request.id}`}
-                              >
-                                <Package2 className="h-4 w-4 mr-2" />
-                                Convertir
-                              </Button>
-                            </ConvertToReceptionDialog>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                  <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                  <p className="text-lg font-medium">Aucune demande d'achat à convertir</p>
-                  <p className="text-sm">Les demandes d'achat approuvées ou commandées apparaîtront ici</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      </Card>
 
       {showForm && (
         <ReceptionForm 
