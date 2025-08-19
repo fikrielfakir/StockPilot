@@ -41,9 +41,18 @@ xcopy /E /I /Y electron dist-desktop\electron\
 copy electron-builder.json dist-desktop\
 if not exist "dist-desktop\data" mkdir dist-desktop\data
 
+REM Install desktop dependencies
+echo Step 4/5: Installing desktop dependencies...
+call npm install --save-dev electron@26.0.0 electron-builder@26.0.12 cross-env@7.0.3
+if errorlevel 1 (
+    echo Error installing desktop dependencies
+    pause
+    exit /b 1
+)
+
 REM Build Electron executable
-echo Step 4/4: Building Windows executable...
-call npx electron-builder --config electron-builder.json --win
+echo Step 5/5: Building Windows executable...
+call npx electron-builder --config package-desktop.json --win
 if errorlevel 1 (
     echo Error building Electron app
     pause

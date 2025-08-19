@@ -16,6 +16,12 @@ if not exist "node_modules" (
     npm install
 )
 
+REM Install desktop dependencies if needed
+if not exist "node_modules\electron" (
+    echo Installing desktop dependencies...
+    npm install --save-dev electron@26.0.0 electron-builder@26.0.12 cross-env@7.0.3
+)
+
 REM Start the desktop server in background
 echo Starting desktop server on port 3001...
 start /b cmd /c "set DESKTOP_PORT=3001 && tsx server/index-desktop.ts"
