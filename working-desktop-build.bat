@@ -26,13 +26,9 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Update the desktop server for CommonJS
-echo Step 3: Creating CommonJS compatible server...
-echo const path = require('path'); > dist-desktop\index-desktop.js
-echo const { createRequire } = require('module'); >> dist-desktop\index-desktop.js
-echo const require = createRequire(import.meta.url); >> dist-desktop\index-desktop.js
-type dist-desktop\index-desktop.js.tmp >> dist-desktop\index-desktop.js 2>nul
-del dist-desktop\index-desktop.js.tmp 2>nul
+REM Fix the CommonJS compatibility issue
+echo Step 3: Fixing import.meta in CommonJS build...
+powershell -Command "(Get-Content 'dist-desktop\index-desktop.js') -replace 'import\.meta\.url', '__filename' | Set-Content 'dist-desktop\index-desktop.js'"
 
 REM Build the desktop app
 echo Step 4: Building Electron app...

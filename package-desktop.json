@@ -65,10 +65,5 @@
       "target": "AppImage",
       "category": "Office"
     }
-  },
-  "devDependencies": {
-    "electron": "^26.0.0",
-    "electron-builder": "^26.0.12",
-    "cross-env": "^7.0.3"
   }
 }

@@ -3,8 +3,9 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { initializeDatabase, db, sqlite3 } from "./db-local.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Handle both ESM and CommonJS environments
+const __filename = typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url);
+const __dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(__filename);
 
 const app = express();
 const PORT = parseInt(process.env.DESKTOP_PORT || '3001');
