@@ -35,7 +35,7 @@ if not exist "dist\index.html" (
 REM Step 4: Build desktop server
 echo Step 4: Building desktop server...
 if not exist "dist-desktop" mkdir dist-desktop
-call npx esbuild server/index-desktop.ts --platform=node --packages=external --bundle --format=esm --outdir=dist-desktop
+call npx esbuild server/index-desktop.ts --platform=node --bundle --format=esm --outdir=dist-desktop --external:better-sqlite3 --external:ws --external:express
 if errorlevel 1 (
     echo Failed to build desktop server
     pause
