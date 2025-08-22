@@ -89,13 +89,15 @@ app.get('/api/dashboard/stats', (req, res) => {
   }
 });
 
-// Serve static files in production
+// Serve static files in production - corrected path
 if (process.env.NODE_ENV === 'production') {
-  const clientPath = path.join(__dirname, '../client/dist');
-  app.use(express.static(clientPath));
+  const publicPath = path.join(__dirname, '../dist/public');
+  app.use(express.static(publicPath));
   
   app.get('*', (req, res) => {
-    res.sendFile(path.join(clientPath, 'index.html'));
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(publicPath, 'index.html'));
+    }
   });
 }
 
@@ -105,20 +107,11 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// Serve static files for production
-if (process.env.NODE_ENV === 'production') {
-  const clientPath = path.join(__dirname, '../dist');
-  app.use(express.static(clientPath));
-  
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api/')) {
-      res.sendFile(path.join(clientPath, 'index.html'));
-    }
-  });
-}
-
-app.listen(PORT, '127.0.0.1', () => {
+const server = app.listen(PORT, '127.0.0.1', () => {
   console.log(`🖥️  Desktop server running on http://127.0.0.1:${PORT}`);
   console.log(`📁 Database path: ${sqlite3.name}`);
   console.log(`🚀 Mode: ${process.env.NODE_ENV || 'development'}`);
 });
+
+// Export for graceful shutdown
+export default server;
